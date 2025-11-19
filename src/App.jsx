@@ -855,7 +855,7 @@ const Portfolio = () => {
             </div>
             <div className="flex items-end gap-6">
               <div className="hidden md:block text-right">
-                <a href="https://drive.google.com/file/d/1oPs0eZW7bvuWO032v5NZQs-E1PFO2jp9/view?usp=sharing" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-xs font-mono text-emerald-500 border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 rounded hover:bg-emerald-500/10 transition-all cursor-pointer"><Download size={14} /> DOWNLOAD CV</a>
+                <a href="https://drive.google.com/file/d/1mP_2WGmPIe07n4ktAdnpPGzOff_x8rt-/view?usp=drive_link" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-xs font-mono text-emerald-500 border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 rounded hover:bg-emerald-500/10 transition-all cursor-pointer"><Download size={14} /> DOWNLOAD CV</a>
               </div>
               <div className="hidden md:block text-right"><div className="text-xs text-slate-500 font-mono">CURRENT LOCATION</div><div className="text-sm font-mono">{profile.location}</div></div>
             </div>
@@ -874,7 +874,7 @@ const Portfolio = () => {
                   <p className="text-slate-400 max-w-xl leading-relaxed mb-8">{profile.bio}</p>
                   <div className="flex gap-4">
                     <button onClick={() => setActiveTab('projects')} className="bg-emerald-600 hover:bg-emerald-500 text-white font-mono px-6 py-3 rounded flex items-center gap-2 transition-all active:scale-95 cursor-pointer">VIEW SHIPMENTS <ChevronRight size={16} /></button>
-                    <a href="https://drive.google.com/file/d/1oPs0eZW7bvuWO032v5NZQs-E1PFO2jp9/view?usp=sharing" target="_blank" rel="noreferrer" className="border border-slate-600 hover:border-white text-slate-300 hover:text-white font-mono px-6 py-3 rounded flex items-center gap-2 transition-all cursor-pointer">DOWNLOAD CV <Download size={16} /></a>
+                    <a href="https://drive.google.com/file/d/1mP_2WGmPIe07n4ktAdnpPGzOff_x8rt-/view?usp=drive_link" target="_blank" rel="noreferrer" className="border border-slate-600 hover:border-white text-slate-300 hover:text-white font-mono px-6 py-3 rounded flex items-center gap-2 transition-all cursor-pointer">DOWNLOAD CV <Download size={16} /></a>
                   </div>
                 </div>
                 

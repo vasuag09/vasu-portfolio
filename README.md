@@ -5,7 +5,7 @@ An interactive, terminal-enhanced, AI-augmented engineering portfolio showcasing
 ---
 
 ## Live Demo
-🚀 Deployment coming soon (Add your Vercel/Netlify URL once deployed)
+https://vasu-portfolio-m8p1.onrender.com/
 
 ---
 
@@ -123,7 +123,7 @@ npm run build
 ```
 
 Deployment
-- Vercel recommended
+- Render recommended
 - Ensure `postcss.config.cjs` (CommonJS) is used
 - Tailwind must be in devDependencies
 
@@ -149,13 +149,6 @@ Deployment
 
 ---
 
-## Screenshots
-Add images after deployment:
-- /assets/screenshots/overview.png
-- /assets/screenshots/deep-dive.png
-- /assets/screenshots/terminal.png
-
----
 
 ## Contact
 

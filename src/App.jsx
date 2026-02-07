@@ -424,6 +424,44 @@ const Portfolio = () => {
         metrics: "Counting Accuracy: 94% on highway footage.",
       },
     },
+    {
+      id: 12,
+      alias: "cifar-super-resolution",
+      title: "Super-Resolution Decoder Architecture Study (CIFAR-10)",
+      tech: [
+        "Deep Learning",
+        "Computer Vision",
+        "Super Resolution",
+        "TensorFlow",
+        "CNN",
+        "PSNR / SSIM",
+      ],
+      description:
+        "Controlled experimental study comparing Conv2DTranspose vs UpSampling+Conv decoders for ×2 image super-resolution, highlighting metric–perception trade-offs and artifact behavior.",
+      link: "https://github.com/vasuag09/cifar10-super-resolution-study", // update with actual repo link
+      status: "RESEARCH",
+      gif: null,
+      tier: "A", // Core Engineering (do NOT mark S — correct judgment)
+      details: {
+        problem:
+          "Image super-resolution models are often evaluated purely on pixel-wise metrics like PSNR, which fail to capture perceptual artifacts introduced by architectural choices.",
+
+        architecture:
+          "Two controlled CNN architectures with identical encoders and training setups. Model-1 uses Conv2DTranspose for learned upsampling, while Model-2 replaces it with deterministic UpSampling2D followed by convolution.",
+
+        pipeline:
+          "CIFAR-10 HR Images (32×32) → Bicubic Downsampling (16×16) → CNN Encoder → Decoder (Transpose Conv / UpSample+Conv) → Reconstructed HR Output.",
+
+        decisions:
+          "Kept all variables constant (data, loss, optimizer, training schedule) to isolate decoder behavior. Used both PSNR/SSIM and qualitative visual inspection to evaluate reconstruction quality.",
+
+        failures:
+          "Transpose convolution introduced checkerboard artifacts that were not reflected in PSNR/SSIM. Metrics alone proved insufficient for assessing perceptual stability.",
+
+        metrics:
+          "Model-1 PSNR: 27.65 dB, SSIM: 0.90. Model-2 PSNR: 27.63 dB, SSIM: 0.90. Both outperform bicubic baseline (~26–27 dB), with Model-2 producing visually more stable outputs.",
+      },
+    },
   ];
 
   // ... (Skills, Certs, Logs, and Hooks remain unchanged)
@@ -558,19 +596,19 @@ const Portfolio = () => {
       return "Error: API Key not configured. Please add your Gemini API key to the source code.";
     }
     const systemContext = `You are VASU_OS, the AI assistant for Vasu Agrawal's engineering portfolio. Your persona: Technical, concise, slightly witty, "hacker" aesthetic. Here is Vasu's data: Profile: ${JSON.stringify(
-      profile
+      profile,
     )}, Skills: ${JSON.stringify(skills)}, Projects: ${JSON.stringify(
       projects.map((p) => ({
         title: p.title,
         tech: p.tech,
         description: p.description,
         details: p.details,
-      }))
+      })),
     )} Engineering Logs: ${JSON.stringify(
       engineeringLogs.map((l) => ({
         title: l.title,
         summary: l.content.substring(0, 100),
-      }))
+      })),
     )}. Answer the user's question based STRICTLY on this data. Keep answers short (under 3 sentences) to fit the terminal style.`;
     try {
       const response = await fetch(
@@ -582,7 +620,7 @@ const Portfolio = () => {
             contents: [{ parts: [{ text: userQuery }] }],
             systemInstruction: { parts: [{ text: systemContext }] },
           }),
-        }
+        },
       );
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
@@ -641,7 +679,7 @@ const Portfolio = () => {
         case "./ls":
         case "./list-projects":
           systemOutput = projects.map(
-            (p) => `[${p.id}] [${p.tier}] ${p.alias} -> ${p.title}`
+            (p) => `[${p.id}] [${p.tier}] ${p.alias} -> ${p.title}`,
           );
           break; // Updated to show Tier
         case "./ship-log":
@@ -673,7 +711,7 @@ const Portfolio = () => {
           const statTarget = args[1];
           if (statTarget) {
             const proj = projects.find(
-              (p) => p.alias === statTarget || p.id === parseInt(statTarget)
+              (p) => p.alias === statTarget || p.id === parseInt(statTarget),
             );
             if (proj && proj.details) {
               systemOutput = [
@@ -770,11 +808,11 @@ const Portfolio = () => {
   // Sort projects: Tier S -> Tier A -> Tier B
   const tierOrder = { S: 0, A: 1, B: 2 };
   const sortedProjects = [...projects].sort(
-    (a, b) => tierOrder[a.tier] - tierOrder[b.tier]
+    (a, b) => tierOrder[a.tier] - tierOrder[b.tier],
   );
   const filteredProjects = filterTech
     ? sortedProjects.filter((p) =>
-        p.tech.some((t) => t.toLowerCase().includes(filterTech.toLowerCase()))
+        p.tech.some((t) => t.toLowerCase().includes(filterTech.toLowerCase())),
       )
     : sortedProjects;
 
@@ -829,8 +867,8 @@ const Portfolio = () => {
                     borderColor: isActive
                       ? "rgb(16 185 129)"
                       : isPast
-                      ? "rgb(16 185 129 / 0.5)"
-                      : "rgb(51 65 85)",
+                        ? "rgb(16 185 129 / 0.5)"
+                        : "rgb(51 65 85)",
                     backgroundColor: isActive
                       ? "rgb(6 78 59)"
                       : "rgb(15 23 42)",
@@ -1012,8 +1050,8 @@ const Portfolio = () => {
                 entry.type === "user"
                   ? "text-white"
                   : entry.type === "ai"
-                  ? "text-emerald-300"
-                  : "text-emerald-400/80"
+                    ? "text-emerald-300"
+                    : "text-emerald-400/80"
               }`}
             >
               {entry.type === "user" ? (
@@ -1117,8 +1155,8 @@ const Portfolio = () => {
                       expandedProject.tier === "S"
                         ? "bg-gradient-to-r from-emerald-500/20 to-yellow-500/20 text-yellow-300 border-yellow-500/50"
                         : expandedProject.tier === "A"
-                        ? "bg-blue-500/20 text-blue-300 border-blue-500/50"
-                        : "bg-slate-800 text-slate-400 border-slate-700"
+                          ? "bg-blue-500/20 text-blue-300 border-blue-500/50"
+                          : "bg-slate-800 text-slate-400 border-slate-700"
                     }`}
                   >
                     TIER {expandedProject.tier}
@@ -1619,10 +1657,10 @@ const Portfolio = () => {
                               project.status === "LIVE"
                                 ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400"
                                 : project.status === "RESEARCH"
-                                ? "bg-blue-500/10 border-blue-500/50 text-blue-400"
-                                : project.status === "CODE"
-                                ? "bg-purple-500/10 border-purple-500/50 text-purple-400"
-                                : "bg-yellow-500/10 border-yellow-500/50 text-yellow-400"
+                                  ? "bg-blue-500/10 border-blue-500/50 text-blue-400"
+                                  : project.status === "CODE"
+                                    ? "bg-purple-500/10 border-purple-500/50 text-purple-400"
+                                    : "bg-yellow-500/10 border-yellow-500/50 text-yellow-400"
                             }`}
                           >
                             {project.status === "BUILDING" && (

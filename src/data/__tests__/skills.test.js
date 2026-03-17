@@ -31,16 +31,16 @@ describe("skills data", () => {
 
   it("includes expected categories", () => {
     const categories = skills.map((s) => s.category);
-    expect(categories).toContain("GEN AI / LLM");
-    expect(categories).toContain("DEEP LEARNING");
-    expect(categories).toContain("FULL STACK");
-    expect(categories).toContain("DATA ENG");
+    expect(categories).toContain("CORE ML / COMPUTER VISION");
+    expect(categories).toContain("APPLIED ML ENGINEERING");
+    expect(categories).toContain("FULL-STACK + ML SYSTEMS");
+    expect(categories).toContain("GEN AI (FOUNDATIONAL)");
   });
 });
 
 describe("certifications data", () => {
   it("has 8 certifications", () => {
-    expect(certifications).toHaveLength(8);
+    expect(certifications).toHaveLength(4);
   });
 
   it("all certifications are non-empty strings", () => {

@@ -1,1 +1,127 @@
 @import "tailwindcss";
+
+@keyframes retro-flicker {
+  0% { opacity: 0.15; }
+  5% { opacity: 0.18; }
+  10% { opacity: 0.14; }
+  15% { opacity: 0.16; }
+  20% { opacity: 0.14; }
+  25% { opacity: 0.17; }
+  30% { opacity: 0.15; }
+  35% { opacity: 0.14; }
+  40% { opacity: 0.16; }
+  45% { opacity: 0.18; }
+  50% { opacity: 0.15; }
+  55% { opacity: 0.14; }
+  60% { opacity: 0.17; }
+  65% { opacity: 0.15; }
+  70% { opacity: 0.14; }
+  75% { opacity: 0.16; }
+  80% { opacity: 0.14; }
+  85% { opacity: 0.17; }
+  90% { opacity: 0.15; }
+  95% { opacity: 0.16; }
+  100% { opacity: 0.15; }
+}
+
+.animate-retro-flicker {
+  animation: retro-flicker 0.1s infinite;
+}
+
+/* Standard scrollbar for non-webkit browsers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(51, 65, 85) transparent;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(51, 65, 85);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(16, 185, 129);
+}
+
+/* Reduced Motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Glow shift animation for orbs */
+@keyframes glow-shift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.15;
+  }
+  25% {
+    transform: translate(10px, -15px) scale(1.05);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate(-5px, 10px) scale(0.95);
+    opacity: 0.2;
+  }
+  75% {
+    transform: translate(15px, 5px) scale(1.02);
+    opacity: 0.18;
+  }
+}
+
+.animate-glow-shift {
+  animation: glow-shift 8s ease-in-out infinite;
+}
+
+:root {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Retro mode CRT styling - choosing better monospace alternatives */
+.retro-mode {
+  --font-sans: "IBM Plex Mono", "Source Code Pro", "Courier New", Courier, monospace;
+  --font-mono: "IBM Plex Mono", "Source Code Pro", "Courier New", Courier, monospace;
+}
+
+/* Selection highlighting */
+::selection {
+  background: rgba(16, 185, 129, 0.3);
+  color: rgb(167, 243, 208);
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid rgb(16, 185, 129);
+  outline-offset: 2px;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

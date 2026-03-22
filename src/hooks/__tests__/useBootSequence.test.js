@@ -5,10 +5,13 @@ import { useBootSequence } from "../useBootSequence";
 describe("useBootSequence", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    // Mock matchMedia — default to no reduced motion preference
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("starts with empty boot sequence and not booted", () => {
@@ -42,6 +45,16 @@ describe("useBootSequence", () => {
 
     act(() => result.current.skipBoot());
 
+    expect(result.current.bootSequence).toHaveLength(5);
+    expect(result.current.isBooted).toBe(true);
+  });
+
+  it("auto-skips boot when user prefers reduced motion", () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+
+    const { result } = renderHook(() => useBootSequence());
+
+    // Should be immediately booted without needing timers
     expect(result.current.bootSequence).toHaveLength(5);
     expect(result.current.isBooted).toBe(true);
   });

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { processCommand, generateAiResponse } from "../terminal-commands";
 
 // Mock callbacks for processCommand
@@ -79,45 +79,39 @@ describe("processCommand", () => {
 });
 
 describe("generateAiResponse", () => {
-  it("returns error when API key is empty", async () => {
-    const result = await generateAiResponse("hello", "");
-    expect(result).toContain("Error");
-    expect(result).toContain("API Key");
+  let originalFetch;
+
+  beforeEach(() => {
+    originalFetch = globalThis.fetch;
   });
 
-  it("returns error when API key is undefined", async () => {
-    const result = await generateAiResponse("hello", undefined);
-    expect(result).toContain("Error");
-  });
-
-  it("handles fetch failure gracefully", async () => {
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
-
-    const result = await generateAiResponse("hello", "test-key");
-    expect(result).toContain("Error");
-    expect(result).toContain("Network error");
-
+  afterEach(() => {
     globalThis.fetch = originalFetch;
   });
 
+  it("handles fetch failure gracefully", async () => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+
+    const result = await generateAiResponse("hello");
+    expect(result).toContain("Error");
+    expect(result).toContain("Network error");
+  });
+
   it("handles API error response", async () => {
-    const originalFetch = globalThis.fetch;
     globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: () =>
         Promise.resolve({ error: { message: "Invalid API key" } }),
     });
 
-    const result = await generateAiResponse("hello", "bad-key");
+    const result = await generateAiResponse("hello");
     expect(result).toContain("Error");
     expect(result).toContain("Invalid API key");
-
-    globalThis.fetch = originalFetch;
   });
 
   it("returns AI response on success", async () => {
-    const originalFetch = globalThis.fetch;
     globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: () =>
         Promise.resolve({
           candidates: [
@@ -126,9 +120,7 @@ describe("generateAiResponse", () => {
         }),
     });
 
-    const result = await generateAiResponse("hello", "valid-key");
+    const result = await generateAiResponse("hello");
     expect(result).toBe("Hello from AI");
-
-    globalThis.fetch = originalFetch;
   });
 });

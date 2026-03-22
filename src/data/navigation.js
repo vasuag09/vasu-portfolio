@@ -2,7 +2,7 @@ import {
   Layout,
   Code2,
   Cpu,
-  BookOpen,
+  FlaskConical,
   User,
 } from "lucide-react";
 
@@ -29,10 +29,10 @@ export const NAVIGATION_ITEMS = [
     shortcut: "3",
   },
   {
-    path: "/blog",
-    label: "Blog",
-    systemLabel: "Engineering Log",
-    icon: BookOpen,
+    path: "/research",
+    label: "Research",
+    systemLabel: "Research Lab",
+    icon: FlaskConical,
     shortcut: "4",
   },
   {

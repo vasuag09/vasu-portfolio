@@ -1,56 +1,56 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { Download } from "lucide-react";
-import { profile } from "../../data/profile";
-import { getActiveItem } from "../../data/navigation";
-import { CV_LINK, SYSTEM_CONFIG } from "../../data/constants";
+import { CV_LINK } from "../../data/constants";
+import { getActiveLayer } from "../../utils/layers";
+
+/**
+ * Page header with neural layer label and system status.
+ */
+
+const LAYER_LABELS = {
+  0: { tag: "INPUT LAYER", title: "System Overview" },
+  1: { tag: "HIDDEN LAYER 1", title: "Trained Models" },
+  2: { tag: "HIDDEN LAYER 2", title: "Weights & Biases" },
+  3: { tag: "HIDDEN LAYER 3", title: "Research Lab" },
+  4: { tag: "OUTPUT LAYER", title: "About" },
+};
 
 export default function Header() {
   const location = useLocation();
-  const activeItem = getActiveItem(location.pathname);
-  const Icon = activeItem.icon;
+  const activeLayer = getActiveLayer(location.pathname);
+  const layerInfo = LAYER_LABELS[activeLayer] || LAYER_LABELS[0];
+
+  // Don't show header on deep-dive / reader views
+  const isDetailView =
+    location.pathname.match(/^\/projects\/.+/);
+  if (isDetailView) return null;
 
   return (
-    <header className="flex justify-between items-end mb-6 md:mb-12 border-b border-slate-800 pb-4 mt-2 md:mt-0">
+    <header className="flex justify-between items-end mb-8 md:mb-12 border-b border-[rgba(0,212,255,0.06)] pb-4 mt-2 md:mt-0">
       <div>
-        <h2 className="text-2xl font-bold text-white mb-1 flex items-center gap-3">
-          <Icon className="text-emerald-500" />
-          {activeItem.label.toUpperCase()}
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-[10px] font-mono text-cyan-500/60 tracking-widest">
+            {layerInfo.tag}
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-500/40 animate-neural-breathe" />
+        </div>
+        <h2
+          className="text-2xl font-bold text-white"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          {layerInfo.title}
         </h2>
-        <div className="flex items-center gap-4 text-[10px] font-mono">
-          <div className="flex items-center gap-1.5 text-emerald-500">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-            SYSTEM {SYSTEM_CONFIG.status}
-          </div>
-          <div className="hidden sm:flex items-center gap-1 text-slate-500">
-            <span className="opacity-50">[</span>
-            <span className="text-emerald-500/60">LATENCY: {SYSTEM_CONFIG.latency}</span>
-            <span className="opacity-50">]</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-1 text-slate-500">
-            <span className="opacity-50">[</span>
-            <span className="text-emerald-500/60">NODE_V: {SYSTEM_CONFIG.version}</span>
-            <span className="opacity-50">]</span>
-          </div>
-        </div>
       </div>
-      <div className="flex items-end gap-6">
-        <div className="hidden md:block text-right">
-          <a
-            href={CV_LINK}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 text-xs font-mono text-emerald-500 border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 rounded hover:bg-emerald-500/10 transition-all cursor-pointer"
-          >
-            <Download size={14} /> DOWNLOAD CV
-          </a>
-        </div>
-        <div className="hidden md:block text-right">
-          <div className="text-xs text-slate-500 font-mono">
-            CURRENT LOCATION
-          </div>
-          <div className="text-sm font-mono">{profile.location}</div>
-        </div>
+      <div className="hidden md:flex items-center gap-4">
+        <a
+          href={CV_LINK}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2 text-xs font-mono text-cyan-400/80 border border-cyan-500/20 bg-cyan-500/5 px-3 py-2 rounded-lg hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all cursor-pointer"
+        >
+          <Download size={14} /> DOWNLOAD CV
+        </a>
       </div>
     </header>
   );

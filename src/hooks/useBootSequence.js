@@ -10,16 +10,25 @@ const BOOT_SEQUENCE = [
 
 const STEP_DELAY = 400;
 
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 /**
  * Manages the boot sequence animation with skip support.
+ * Automatically skips if the user prefers reduced motion.
  * Returns { bootSequence, isBooted, skipBoot }
  */
 export function useBootSequence() {
-  const [bootSequence, setBootSequence] = useState([]);
-  const [isBooted, setIsBooted] = useState(false);
+  const [bootSequence, setBootSequence] = useState(() =>
+    prefersReducedMotion() ? BOOT_SEQUENCE : [],
+  );
+  const [isBooted, setIsBooted] = useState(() => prefersReducedMotion());
   const timeoutIds = useRef([]);
 
   useEffect(() => {
+    if (isBooted) return; // Already booted (reduced motion)
+
     timeoutIds.current = [];
 
     let delay = 0;
@@ -36,7 +45,7 @@ export function useBootSequence() {
       timeoutIds.current.forEach(clearTimeout);
       timeoutIds.current = [];
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const skipBoot = () => {
     timeoutIds.current.forEach(clearTimeout);

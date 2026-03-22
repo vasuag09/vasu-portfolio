@@ -87,13 +87,10 @@ export function processCommand(command, { setExpandedProject, setIsTerminalOpen,
 }
 
 /**
- * Generates an AI response using the Gemini API.
+ * Generates an AI response via the backend proxy (which calls Gemini).
+ * In development, falls back to direct Gemini API call if VITE_GEMINI_API_KEY is set.
  */
-export async function generateAiResponse(userQuery, apiKey) {
-  if (!apiKey || apiKey === "") {
-    return "Error: API Key not configured. Please add your Gemini API key to the source code.";
-  }
-
+export async function generateAiResponse(userQuery) {
   const systemContext = `You are VASU_OS, the AI assistant for Vasu Agrawal's engineering portfolio. Your persona: Technical, concise, slightly witty, "hacker" aesthetic. Here is Vasu's data: Profile: ${JSON.stringify(
     profile,
   )}, Skills: ${JSON.stringify(skills)}, Projects: ${JSON.stringify(
@@ -110,19 +107,42 @@ export async function generateAiResponse(userQuery, apiKey) {
     })),
   )}. Answer the user's question based STRICTLY on this data. Keep answers short (under 3 sentences) to fit the terminal style.`;
 
+  const requestBody = {
+    contents: [{ parts: [{ text: userQuery }] }],
+    systemInstruction: { parts: [{ text: systemContext }] },
+  };
+
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
+    // In production, use backend proxy. In dev, fall back to direct API call.
+    const devApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const isProduction = import.meta.env.PROD;
+
+    let data;
+
+    if (isProduction || !devApiKey) {
+      const response = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: userQuery }] }],
-          systemInstruction: { parts: [{ text: systemContext }] },
-        }),
-      },
-    );
-    const data = await response.json();
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "AI service unavailable");
+      }
+      data = await response.json();
+    } else {
+      // Dev-only direct call
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${devApiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+        },
+      );
+      data = await response.json();
+    }
+
     if (data.error) throw new Error(data.error.message);
     return (
       data.candidates?.[0]?.content?.parts?.[0]?.text ||

@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
  * Global keyboard shortcuts:
  *  - Cmd/Ctrl+K: toggle terminal
  *  - Escape: close overlays
- *  - 1-5: navigate tabs (when terminal is closed)
+ *  - 1-4: navigate tabs (when terminal is closed)
  */
 export function useKeyboardShortcuts({
   isTerminalOpen,
@@ -36,8 +36,6 @@ export function useKeyboardShortcuts({
         // If on a sub-view, navigate back
         if (location.pathname.startsWith("/projects/")) {
           navigate("/projects");
-        } else if (location.pathname.startsWith("/blog/")) {
-          navigate("/blog");
         }
         return;
       }
@@ -46,7 +44,7 @@ export function useKeyboardShortcuts({
       if (isTerminalOpen) return;
       if (e.altKey || e.metaKey || e.ctrlKey) return;
 
-      const routes = { "1": "/", "2": "/projects", "3": "/skills", "4": "/blog", "5": "/about" };
+      const routes = { "1": "/", "2": "/projects", "3": "/skills", "4": "/research", "5": "/about" };
       if (routes[e.key]) {
         setIsMobileMenuOpen?.(false);
         navigate(routes[e.key]);

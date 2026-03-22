@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="8" fill="#020617"/>
+  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="monospace" font-weight="bold" font-size="32" fill="#10b981">V</text>
+  <rect x="4" y="4" width="56" height="56" rx="6" fill="none" stroke="#10b981" stroke-width="2" opacity="0.3"/>
+</svg>

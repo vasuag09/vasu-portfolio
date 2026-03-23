@@ -2,21 +2,18 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { processCommand, generateAiResponse } from "../utils/terminal-commands";
 
 /**
- * Manages terminal state: history, input, AI processing, and command handling.
+ * Manages terminal/Synapse state: history, input, AI processing, and command handling.
  */
 export function useTerminal({ setExpandedProject, setIsTerminalOpen, isRetro, setIsRetro }) {
   const [terminalInput, setTerminalInput] = useState("");
   const [terminalHistory, setTerminalHistory] = useState([
-    { type: "system", content: "Welcome to VASU_OS v4.2.0 (AI Enabled)" },
     {
       type: "system",
-      content: 'Type "./help" for commands or just ask me anything about Vasu.',
+      content: "Synapse online. Ask me anything about Vasu's work, projects, or skills.",
     },
   ]);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const terminalEndRef = useRef(null);
-
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 
   useEffect(() => {
     if (terminalEndRef.current) {
@@ -24,20 +21,15 @@ export function useTerminal({ setExpandedProject, setIsTerminalOpen, isRetro, se
     }
   }, [terminalHistory]);
 
-  const handleCommand = useCallback(
-    async (e) => {
-      if (e.key !== "Enter") return;
-
-      const command = terminalInput.trim();
-      if (!command) return;
+  const processInput = useCallback(
+    async (command) => {
+      if (!command.trim()) return;
 
       setTerminalHistory((prev) => [
         ...prev,
         { type: "user", content: command },
       ]);
-      setTerminalInput("");
 
-      // Handle ./clear specially
       if (command === "./clear") {
         setTerminalHistory([]);
         return;
@@ -56,10 +48,9 @@ export function useTerminal({ setExpandedProject, setIsTerminalOpen, isRetro, se
           ...output.map((line) => ({ type: "system", content: line })),
         ]);
       } else {
-        // AI query
         setIsAiProcessing(true);
         try {
-          const aiResponse = await generateAiResponse(command, apiKey);
+          const aiResponse = await generateAiResponse(command);
           setTerminalHistory((prev) => [
             ...prev,
             { type: "ai", content: aiResponse },
@@ -69,7 +60,27 @@ export function useTerminal({ setExpandedProject, setIsTerminalOpen, isRetro, se
         }
       }
     },
-    [terminalInput, setExpandedProject, setIsTerminalOpen, isRetro, setIsRetro, apiKey],
+    [setExpandedProject, setIsTerminalOpen, isRetro, setIsRetro],
+  );
+
+  const handleCommand = useCallback(
+    (e) => {
+      if (e.key !== "Enter") return;
+      const command = terminalInput.trim();
+      if (!command) return;
+      setTerminalInput("");
+      processInput(command);
+    },
+    [terminalInput, processInput],
+  );
+
+  // Direct submit for suggestion chips (bypasses input state)
+  const submitQuery = useCallback(
+    (query) => {
+      setTerminalInput("");
+      processInput(query);
+    },
+    [processInput],
   );
 
   return {
@@ -79,5 +90,6 @@ export function useTerminal({ setExpandedProject, setIsTerminalOpen, isRetro, se
     isAiProcessing,
     terminalEndRef,
     handleCommand,
+    submitQuery,
   };
 }

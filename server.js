@@ -36,6 +36,11 @@ setInterval(() => {
 
 app.use(express.json());
 
+// Health check — confirms which server version is running
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", model: "gemini-1.5-flash", version: "2" });
+});
+
 // API proxy endpoint
 app.post("/api/ai", async (req, res) => {
   const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress;

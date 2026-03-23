@@ -51,7 +51,7 @@ app.post("/api/ai", async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,7 +59,19 @@ app.post("/api/ai", async (req, res) => {
       },
     );
 
-    const data = await response.json();
+    const text = await response.text();
+    if (!text) {
+      return res.status(502).json({ error: "AI service returned empty response." });
+    }
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error("Gemini non-JSON response:", text.slice(0, 200));
+      return res.status(502).json({ error: "AI service returned invalid response." });
+    }
+
     res.json(data);
   } catch (error) {
     console.error("Gemini proxy error:", error);

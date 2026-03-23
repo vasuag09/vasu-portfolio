@@ -38,7 +38,7 @@ app.use(express.json());
 
 // Health check — confirms which server version is running
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", model: "gemini-2.0-flash", version: "3" });
+  res.json({ status: "ok", model: "gemini-2.5-flash", version: "4" });
 });
 
 // API proxy endpoint
@@ -56,7 +56,7 @@ app.post("/api/ai", async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

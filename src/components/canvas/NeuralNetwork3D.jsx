@@ -1,7 +1,6 @@
 import React, { Suspense, useMemo, useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { EffectComposer, Bloom, ChromaticAberration, Vignette } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 import NetworkNodes from "./NetworkNodes";
 import NetworkParticles from "./NetworkParticles";
@@ -51,7 +50,7 @@ function generateNetworkData(isMobile) {
 
 function Scene({ activeLayer, isMobile, reducedMotion }) {
   const network = useMemo(() => generateNetworkData(isMobile), [isMobile]);
-  const particleCount = isMobile ? 60 : 150;
+  const particleCount = isMobile ? 30 : 80;
 
   return (
     <>
@@ -82,35 +81,19 @@ function Scene({ activeLayer, isMobile, reducedMotion }) {
       {/* Camera movement */}
       {!reducedMotion && <CameraRig />}
 
-      {/* Post-processing */}
+      {/* Post-processing — lightweight, no mipmapBlur */}
       {!reducedMotion && !isMobile && (
         <EffectComposer>
           <Bloom
-            luminanceThreshold={0.2}
+            luminanceThreshold={0.6}
             luminanceSmoothing={0.9}
-            intensity={1.2}
-            mipmapBlur
-          />
-          <ChromaticAberration
-            blendFunction={BlendFunction.NORMAL}
-            offset={new THREE.Vector2(0.0005, 0.0005)}
-          />
-          <Vignette darkness={0.5} offset={0.3} />
-        </EffectComposer>
-      )}
-
-      {/* Mobile gets lighter post-processing */}
-      {!reducedMotion && isMobile && (
-        <EffectComposer>
-          <Bloom
-            luminanceThreshold={0.3}
-            luminanceSmoothing={0.9}
-            intensity={0.6}
-            mipmapBlur
+            intensity={0.5}
           />
           <Vignette darkness={0.4} offset={0.3} />
         </EffectComposer>
       )}
+
+      {/* Mobile — no post-processing at all */}
     </>
   );
 }
@@ -143,14 +126,13 @@ export default function NeuralNetwork3D({ activeLayer = 0 }) {
     >
       <Canvas
         camera={{ position: [0, 0, isMobile ? 12 : 16], fov: 60 }}
-        dpr={isMobile ? [1, 1.5] : [1, 2]}
+        dpr={[1, 1]}
         gl={{
-          antialias: true,
+          antialias: false,
           alpha: true,
-          powerPreference: "high-performance",
+          powerPreference: "default",
         }}
         style={{ background: "transparent" }}
-        // Avoid WebGL context loss crash
         onCreated={({ gl }) => {
           gl.setClearColor(0x000000, 0);
         }}

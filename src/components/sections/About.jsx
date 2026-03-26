@@ -1,12 +1,14 @@
 import React, { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
-import { Github, Linkedin, Mail, CheckCircle2, ArrowUpRight, Camera } from "lucide-react";
+import { Github, Linkedin, Mail, CheckCircle2, ArrowUpRight, Camera, Briefcase, Quote } from "lucide-react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { SOCIAL_LINKS } from "../../data/constants";
+import { experience, testimonials } from "../../data/profile";
 import MagneticElement from "../effects/MagneticElement";
 import ScrollReveal from "../effects/ScrollReveal";
 import TiltCard from "../effects/TiltCard";
 import TextScramble from "../effects/TextScramble";
+import ContactForm from "../ui/ContactForm";
 
 const FloatingGeometry = lazy(() => import("../canvas/FloatingGeometry"));
 const PoseDetection = lazy(() => import("../ml/PoseDetection"));
@@ -67,6 +69,49 @@ export default function About() {
           </div>
         </div>
       </motion.div>
+
+      {/* Experience */}
+      {experience.length > 0 && (
+        <ScrollReveal animation="fadeUp">
+          <div className="glass-card-static p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <Briefcase size={16} className="text-cyan-400/70" />
+              <h3 className="text-[10px] font-mono text-cyan-500/60 tracking-[0.2em]">
+                EXPERIENCE
+              </h3>
+            </div>
+            <div className="space-y-5">
+              {experience.map((exp, idx) => (
+                <div key={idx} className="border-l-2 border-cyan-500/20 pl-4">
+                  <h4
+                    className="text-base font-bold text-white"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {exp.role}
+                  </h4>
+                  <p className="text-sm text-slate-400 mt-0.5">{exp.company}</p>
+                  <p className="text-xs font-mono text-slate-600 mt-1">{exp.period}</p>
+                  <p className="text-sm text-slate-400 mt-3 leading-relaxed">
+                    {exp.description}
+                  </p>
+                  {exp.highlights && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {exp.highlights.map((h, i) => (
+                        <span
+                          key={i}
+                          className="text-[10px] bg-[rgba(0,212,255,0.04)] border border-[rgba(0,212,255,0.08)] text-cyan-400/60 px-2 py-0.5 rounded-full font-mono"
+                        >
+                          {h}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
+      )}
 
       {/* Open for Collaboration — Bento cards */}
       <ScrollReveal animation="fadeUp" stagger={0.1}>
@@ -151,6 +196,32 @@ export default function About() {
         </TiltCard>
       </ScrollReveal>
 
+      {/* Testimonials */}
+      {testimonials.length > 0 && testimonials[0].name !== "Your Name Here" && (
+        <ScrollReveal animation="fadeUp">
+          <div className="glass-card-static p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <Quote size={16} className="text-purple-400/70" />
+              <h3 className="text-[10px] font-mono text-purple-400/60 tracking-[0.2em]">
+                PEER VALIDATION
+              </h3>
+            </div>
+            <div className="space-y-4">
+              {testimonials.map((t, idx) => (
+                <div key={idx} className="border-l-2 border-purple-500/20 pl-4">
+                  <p className="text-sm text-slate-400 italic leading-relaxed mb-2">
+                    &ldquo;{t.text}&rdquo;
+                  </p>
+                  <p className="text-xs font-mono text-slate-500">
+                    — {t.name}, {t.role}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
+      )}
+
       {/* Neural Vision — Fun interactive webcam effect */}
       <ScrollReveal animation="scaleIn">
         <div className="glass-card-static overflow-hidden">
@@ -182,6 +253,11 @@ export default function About() {
             </Suspense>
           </div>
         </div>
+      </ScrollReveal>
+
+      {/* Contact Form */}
+      <ScrollReveal animation="fadeUp">
+        <ContactForm />
       </ScrollReveal>
 
       {/* Establish Connection — Large interactive cards */}

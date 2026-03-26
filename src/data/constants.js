@@ -4,7 +4,7 @@ export const SOCIAL_LINKS = {
   email: "mailto:vasuagrawal1040@gmail.com",
 };
 
-export const CV_LINK = "https://drive.google.com/file/d/1oPs0eZW7bvuWO032v5NZQs-E1PFO2jp9/view?usp=sharing";
+export const CV_LINK = "https://drive.google.com/uc?export=download&id=1oPs0eZW7bvuWO032v5NZQs-E1PFO2jp9";
 
 export const SYSTEM_CONFIG = {
   version: "22.1.0",

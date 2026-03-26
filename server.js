@@ -41,6 +41,25 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", model: "gemini-2.5-flash", version: "4" });
 });
 
+// Input validation for AI requests
+const MAX_TEXT_LENGTH = 2000;
+function validateAiRequest(body) {
+  if (!body || typeof body !== "object") return "Invalid request body.";
+  if (!Array.isArray(body.contents) || body.contents.length === 0)
+    return "Missing 'contents' array.";
+
+  for (const content of body.contents) {
+    if (!content.parts || !Array.isArray(content.parts))
+      return "Each content must have a 'parts' array.";
+    for (const part of content.parts) {
+      if (typeof part.text !== "string") return "Each part must have a 'text' string.";
+      if (part.text.length > MAX_TEXT_LENGTH)
+        return `Text exceeds maximum length of ${MAX_TEXT_LENGTH} characters.`;
+    }
+  }
+  return null;
+}
+
 // API proxy endpoint
 app.post("/api/ai", async (req, res) => {
   const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
@@ -54,13 +73,25 @@ app.post("/api/ai", async (req, res) => {
     return res.status(500).json({ error: "AI backend not configured." });
   }
 
+  // Validate input
+  const validationError = validateAiRequest(req.body);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
+  // Build sanitized payload — only forward contents and systemInstruction
+  const sanitizedBody = { contents: req.body.contents };
+  if (req.body.systemInstruction) {
+    sanitizedBody.systemInstruction = req.body.systemInstruction;
+  }
+
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(req.body),
+        body: JSON.stringify(sanitizedBody),
       },
     );
 

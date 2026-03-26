@@ -27,6 +27,13 @@ export default function Projects() {
 
   return (
     <section id="projects" className="space-y-6 pb-20 md:pb-8">
+      {/* Section header */}
+      <div className="mb-2">
+        <p className="text-sm text-slate-400 leading-relaxed max-w-xl">
+          Deployed ML systems, research experiments, and full-stack applications. Click any card to explore the architecture, pipeline, and failure modes.
+        </p>
+      </div>
+
       {filterTech && (
         <div className="flex items-center gap-4 glass-card-static p-3 text-sm">
           <Filter size={16} className="text-cyan-500" />

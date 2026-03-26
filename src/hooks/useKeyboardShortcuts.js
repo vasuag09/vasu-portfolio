@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { SHORTCUT_ROUTES } from "../data/navigation";
 
 /**
  * Global keyboard shortcuts:
  *  - Cmd/Ctrl+K: toggle terminal
  *  - Escape: close overlays
- *  - 1-4: navigate tabs (when terminal is closed)
+ *  - 1-6: navigate tabs (when terminal is closed)
+ *  - ?: show keyboard shortcuts overlay
  */
 export function useKeyboardShortcuts({
   isTerminalOpen,
@@ -13,6 +15,7 @@ export function useKeyboardShortcuts({
   setPreviewProject,
   setFilterTech,
   setIsMobileMenuOpen,
+  setIsShortcutsOpen,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,16 +29,27 @@ export function useKeyboardShortcuts({
         return;
       }
 
+      // ? => show keyboard shortcuts (only when not typing in input)
+      if (e.key === "?" && !e.target.closest("input, textarea, [contenteditable]")) {
+        e.preventDefault();
+        setIsShortcutsOpen?.((prev) => !prev);
+        return;
+      }
+
       // Escape => close overlays / navigate back
       if (e.key === "Escape") {
         setPreviewProject(null);
         setFilterTech?.(null);
         setIsTerminalOpen(false);
         setIsMobileMenuOpen?.(false);
+        setIsShortcutsOpen?.(false);
 
         // If on a sub-view, navigate back
         if (location.pathname.startsWith("/projects/")) {
           navigate("/projects");
+        }
+        if (location.pathname.startsWith("/blog/")) {
+          navigate("/blog");
         }
         return;
       }
@@ -43,11 +57,11 @@ export function useKeyboardShortcuts({
       // Number keys for tab navigation (only when terminal is closed)
       if (isTerminalOpen) return;
       if (e.altKey || e.metaKey || e.ctrlKey) return;
+      if (e.target.closest("input, textarea, [contenteditable]")) return;
 
-      const routes = { "1": "/", "2": "/projects", "3": "/skills", "4": "/research", "5": "/about" };
-      if (routes[e.key]) {
+      if (SHORTCUT_ROUTES[e.key]) {
         setIsMobileMenuOpen?.(false);
-        navigate(routes[e.key]);
+        navigate(SHORTCUT_ROUTES[e.key]);
       }
     };
 
@@ -61,5 +75,6 @@ export function useKeyboardShortcuts({
     setPreviewProject,
     setFilterTech,
     setIsMobileMenuOpen,
+    setIsShortcutsOpen,
   ]);
 }

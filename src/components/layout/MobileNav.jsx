@@ -1,31 +1,22 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { NAVIGATION_ITEMS, getActiveLayer } from "../../data/navigation";
 
 /**
  * Mobile navigation — horizontal node chain at the bottom of the screen.
+ * Uses consolidated navigation data (no local duplication).
  */
 
-const LAYERS = [
-  { path: "/", label: "IN" },
-  { path: "/projects", label: "H1" },
-  { path: "/skills", label: "H2" },
-  { path: "/research", label: "H3" },
-  { path: "/about", label: "OUT" },
-];
-
-function getActiveIndex(pathname) {
-  if (pathname === "/") return 0;
-  if (pathname.startsWith("/projects")) return 1;
-  if (pathname.startsWith("/skills")) return 2;
-  if (pathname.startsWith("/research")) return 3;
-  if (pathname.startsWith("/about")) return 4;
-  return -1;
-}
+// Only show main nav items in mobile bar (exclude blog)
+const MOBILE_ITEMS = NAVIGATION_ITEMS.filter((item) => item.path !== "/blog");
 
 export default function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const activeIdx = getActiveIndex(location.pathname);
+  const activeIdx = MOBILE_ITEMS.findIndex((item) => {
+    if (item.path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(item.path);
+  });
 
   return (
     <nav
@@ -33,8 +24,9 @@ export default function MobileNav() {
       aria-label="Mobile navigation"
     >
       <div className="flex items-center justify-around py-3 px-4">
-        {LAYERS.map((layer, idx) => {
+        {MOBILE_ITEMS.map((layer, idx) => {
           const isActive = activeIdx === idx;
+          const Icon = layer.icon;
 
           return (
             <React.Fragment key={layer.path}>
@@ -62,11 +54,11 @@ export default function MobileNav() {
                   }`}
                 />
                 <span
-                  className={`text-[10px] font-mono ${
+                  className={`text-[9px] font-mono ${
                     isActive ? "text-cyan-400" : "text-slate-500"
                   }`}
                 >
-                  {layer.label}
+                  {layer.shortLabel}
                 </span>
               </button>
             </React.Fragment>

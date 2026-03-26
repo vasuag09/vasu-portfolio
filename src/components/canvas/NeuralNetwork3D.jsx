@@ -105,6 +105,16 @@ export default function NeuralNetwork3D({ activeLayer = 0 }) {
   const reducedMotion = typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const [ready, setReady] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+
+  // Pause rendering when tab is hidden (perf fix #16)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -127,6 +137,7 @@ export default function NeuralNetwork3D({ activeLayer = 0 }) {
       <Canvas
         camera={{ position: [0, 0, isMobile ? 12 : 16], fov: 60 }}
         dpr={[1, 1]}
+        frameloop={isVisible ? "always" : "never"}
         gl={{
           antialias: false,
           alpha: true,

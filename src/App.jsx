@@ -4,9 +4,11 @@ import { AnimatePresence } from "framer-motion";
 
 // Layout
 import LayerNav from "./components/layout/LayerNav";
-import { getActiveLayer } from "./utils/layers";
+import { getActiveLayer } from "./data/navigation";
 import Header from "./components/layout/Header";
 import MobileNav from "./components/layout/MobileNav";
+import Footer from "./components/layout/Footer";
+import StatusBar from "./components/layout/StatusBar";
 
 // UI
 import SkipToContent from "./components/ui/SkipToContent";
@@ -18,6 +20,7 @@ import NeuralNetwork3D from "./components/canvas/NeuralNetwork3D";
 
 // Effects
 import CustomCursor from "./components/effects/CustomCursor";
+import PageTransition from "./components/effects/PageTransition";
 
 // Synapse
 import SynapseButton from "./components/synapse/SynapseButton";
@@ -25,6 +28,7 @@ import SynapseButton from "./components/synapse/SynapseButton";
 // Modals
 import GifPreview from "./components/modals/GifPreview";
 import GuidedTour from "./components/modals/GuidedTour";
+import KeyboardShortcuts from "./components/modals/KeyboardShortcuts";
 
 // Hooks
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
@@ -38,20 +42,27 @@ import { useTerminalContext } from "./hooks/useTerminalContext";
 // Lazy-loaded components
 const SynapsePanel = lazy(() => import("./components/synapse/SynapsePanel"));
 const ProjectDeepDive = lazy(() => import("./components/views/ProjectDeepDive"));
+const BlogPost = lazy(() => import("./components/views/BlogPost"));
+
 // Lazy-loaded sections
 const Hero = lazy(() => import("./components/sections/Hero"));
 const Projects = lazy(() => import("./components/sections/Projects"));
 const Skills = lazy(() => import("./components/sections/Skills"));
 const Research = lazy(() => import("./components/sections/Research"));
 const About = lazy(() => import("./components/sections/About"));
+const Blog = lazy(() => import("./components/sections/Blog"));
 const NotFound = lazy(() => import("./components/sections/NotFound"));
 
 function LoadingFallback() {
   return (
-    <div className="flex items-center justify-center py-20">
-      <div className="flex items-center gap-3 text-cyan-500/60 font-mono text-sm">
-        <div className="w-2 h-2 rounded-full bg-cyan-500/60 animate-neural-pulse" />
-        Loading layer...
+    <div className="space-y-6 py-8 animate-pulse">
+      <div className="h-8 w-48 bg-[rgba(0,212,255,0.04)] rounded-lg" />
+      <div className="h-4 w-80 bg-[rgba(0,212,255,0.03)] rounded" />
+      <div className="grid md:grid-cols-2 gap-4 mt-8">
+        <div className="h-48 bg-[rgba(0,212,255,0.03)] rounded-xl border border-[rgba(0,212,255,0.04)]" />
+        <div className="h-48 bg-[rgba(0,212,255,0.03)] rounded-xl border border-[rgba(0,212,255,0.04)]" />
+        <div className="h-48 bg-[rgba(0,212,255,0.03)] rounded-xl border border-[rgba(0,212,255,0.04)]" />
+        <div className="h-48 bg-[rgba(0,212,255,0.03)] rounded-xl border border-[rgba(0,212,255,0.04)]" />
       </div>
     </div>
   );
@@ -69,6 +80,9 @@ function AppContent() {
     tourStep,
     setTourStep,
     setIsMobileMenuOpen,
+    isShortcutsOpen,
+    setIsShortcutsOpen,
+    reducedEffects,
   } = useUI();
 
   const terminal = useTerminalContext();
@@ -78,6 +92,7 @@ function AppContent() {
     setIsTerminalOpen,
     setPreviewProject,
     setIsMobileMenuOpen,
+    setIsShortcutsOpen,
   });
 
   // Tour auto-start
@@ -95,13 +110,22 @@ function AppContent() {
       <SkipToContent />
       <ScrollProgress />
 
+      {/* OS-style status bar */}
+      <StatusBar />
+
       {/* 3D Neural network background */}
-      <NeuralNetwork3D activeLayer={activeLayer} />
+      {!reducedEffects && <NeuralNetwork3D activeLayer={activeLayer} />}
 
       {/* Guided tour */}
       <AnimatePresence>
         {tourStep > 0 && <GuidedTour tourStep={tourStep} setTourStep={setTourStep} />}
       </AnimatePresence>
+
+      {/* Keyboard shortcuts overlay */}
+      <KeyboardShortcuts
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+      />
 
       {/* Synapse AI panel */}
       <AnimatePresence>
@@ -125,7 +149,7 @@ function AppContent() {
         )}
       </AnimatePresence>
 
-      {/* Synapse floating button (hidden when panel is open) */}
+      {/* Synapse floating button */}
       {!isTerminalOpen && (
         <SynapseButton onClick={() => setIsTerminalOpen(true)} />
       )}
@@ -133,21 +157,26 @@ function AppContent() {
       {/* Desktop layer navigation */}
       <LayerNav />
 
-      {/* Main content */}
+      {/* Main content — offset for status bar on desktop (h-7 = 28px) */}
       <main
         id="main-content"
-        className="relative z-[1] md:ml-20 px-6 md:px-12 lg:px-16 pt-6 md:pt-12 lg:pt-16 pb-20 md:pb-8 max-w-6xl"
+        className="relative z-[1] md:ml-20 px-6 md:px-12 lg:px-16 pt-6 md:pt-16 lg:pt-20 pb-20 md:pb-8 max-w-6xl"
       >
         <Header />
-        <Routes>
-          <Route path="/" element={<Suspense fallback={<LoadingFallback />}><Hero /></Suspense>} />
-          <Route path="/projects" element={<Suspense fallback={<LoadingFallback />}><Projects /></Suspense>} />
-          <Route path="/projects/:alias" element={<Suspense fallback={<LoadingFallback />}><ProjectDeepDive /></Suspense>} />
-          <Route path="/skills" element={<Suspense fallback={<LoadingFallback />}><Skills /></Suspense>} />
-          <Route path="/research" element={<Suspense fallback={<LoadingFallback />}><Research /></Suspense>} />
-          <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><About /></Suspense>} />
-          <Route path="*" element={<Suspense fallback={<LoadingFallback />}><NotFound /></Suspense>} />
-        </Routes>
+        <PageTransition>
+          <Routes location={location}>
+            <Route path="/" element={<Suspense fallback={<LoadingFallback />}><Hero /></Suspense>} />
+            <Route path="/projects" element={<Suspense fallback={<LoadingFallback />}><Projects /></Suspense>} />
+            <Route path="/projects/:alias" element={<Suspense fallback={<LoadingFallback />}><ProjectDeepDive /></Suspense>} />
+            <Route path="/skills" element={<Suspense fallback={<LoadingFallback />}><Skills /></Suspense>} />
+            <Route path="/research" element={<Suspense fallback={<LoadingFallback />}><Research /></Suspense>} />
+            <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><About /></Suspense>} />
+            <Route path="/blog" element={<Suspense fallback={<LoadingFallback />}><Blog /></Suspense>} />
+            <Route path="/blog/:slug" element={<Suspense fallback={<LoadingFallback />}><BlogPost /></Suspense>} />
+            <Route path="*" element={<Suspense fallback={<LoadingFallback />}><NotFound /></Suspense>} />
+          </Routes>
+        </PageTransition>
+        <Footer />
       </main>
 
       {/* Mobile navigation */}

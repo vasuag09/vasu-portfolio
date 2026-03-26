@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -6,11 +6,14 @@ import {
   ExternalLink,
   AlertTriangle,
   Target,
+  ArrowRight,
 } from "lucide-react";
 import { projects } from "../../data/projects";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { TierBadge, StatusBadge } from "../ui/NeuralBadge";
 import TechPill from "../ui/TechPill";
+
+const FloatingGeometry = lazy(() => import("../canvas/FloatingGeometry"));
 
 export default function ProjectDeepDive() {
   const { alias } = useParams();
@@ -43,9 +46,13 @@ export default function ProjectDeepDive() {
   const sections = [
     { key: "problem", label: "PROBLEM STATEMENT", content: project.details?.problem },
     { key: "architecture", label: "ARCHITECTURE", content: project.details?.architecture },
-    { key: "pipeline", label: "PIPELINE", content: project.details?.pipeline },
     { key: "decisions", label: "KEY DECISIONS", content: project.details?.decisions },
   ];
+
+  // Parse pipeline string into steps
+  const pipelineSteps = project.details?.pipeline
+    ? project.details.pipeline.split("→").map((s) => s.trim())
+    : [];
 
   return (
     <motion.div
@@ -62,33 +69,74 @@ export default function ProjectDeepDive() {
       </button>
 
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-3 flex-wrap">
-          <TierBadge tier={project.tier} />
-          <StatusBadge status={project.status} />
-          {project.link !== "#" && (
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-mono text-cyan-500/70 hover:text-cyan-400 transition-colors"
-            >
-              View Live <ExternalLink size={12} />
-            </a>
-          )}
+      <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-3 flex-wrap">
+            <TierBadge tier={project.tier} />
+            <StatusBadge status={project.status} />
+            {project.link !== "#" && (
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-mono text-cyan-500/70 hover:text-cyan-400 transition-colors"
+              >
+                View Live <ExternalLink size={12} />
+              </a>
+            )}
+          </div>
+          <h1
+            className="text-3xl md:text-4xl font-bold text-white mb-4"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            {project.title}
+          </h1>
+          <p className="text-sm text-slate-400 leading-relaxed mb-4">
+            {project.description}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {project.tech.map((t) => (
+              <TechPill key={t} label={t} onClick={() => {}} />
+            ))}
+          </div>
         </div>
-        <h1
-          className="text-3xl md:text-4xl font-bold text-white mb-4"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          {project.title}
-        </h1>
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {project.tech.map((t) => (
-            <TechPill key={t} label={t} onClick={() => {}} />
-          ))}
+
+        {/* 3D floating geometry */}
+        <div className="hidden md:block shrink-0">
+          <Suspense fallback={<div className="w-[120px] h-[120px]" />}>
+            <FloatingGeometry tier={project.tier} size={120} />
+          </Suspense>
         </div>
       </div>
+
+      {/* Pipeline visualization */}
+      {pipelineSteps.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass-card-static p-5 mb-5"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/40" />
+            <h3 className="text-[10px] font-mono text-cyan-500/50 tracking-widest">
+              PIPELINE
+            </h3>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {pipelineSteps.map((step, idx) => (
+              <React.Fragment key={idx}>
+                <div className="bg-[rgba(0,240,255,0.04)] border border-[rgba(0,240,255,0.1)] rounded-lg px-3 py-1.5 text-xs font-mono text-cyan-300/80 whitespace-nowrap">
+                  {step}
+                </div>
+                {idx < pipelineSteps.length - 1 && (
+                  <ArrowRight size={12} className="text-cyan-500/30 shrink-0" />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Blueprint-style sections */}
       <div className="grid lg:grid-cols-3 gap-5">
@@ -99,7 +147,7 @@ export default function ProjectDeepDive() {
                 key={section.key}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
+                transition={{ delay: idx * 0.1 + 0.2 }}
                 className="glass-card-static p-5"
               >
                 <div className="flex items-center gap-2 mb-3">

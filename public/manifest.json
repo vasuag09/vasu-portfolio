@@ -1,0 +1,21 @@
+{
+  "name": "VASU_OS Portfolio",
+  "short_name": "VASU_OS",
+  "description": "AI/ML Engineer Portfolio — Vasu Agrawal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06080f",
+  "theme_color": "#06080f",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

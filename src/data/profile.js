@@ -39,3 +39,11 @@ export const careerTrajectory = [
     level: 98,
   },
 ];
+
+// Add your work experience here when ready:
+// { role: "Title", company: "Company", period: "2023 – Present", description: "...", highlights: ["..."] }
+export const experience = [];
+
+// Add testimonials here when ready:
+// { name: "Name", role: "Role · Company", text: "Testimonial text" }
+export const testimonials = [];

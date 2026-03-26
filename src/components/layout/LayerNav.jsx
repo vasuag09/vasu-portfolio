@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { getActiveLayer } from "../../utils/layers";
+import { NAVIGATION_ITEMS, getActiveLayer } from "../../data/navigation";
 import MagneticElement from "../effects/MagneticElement";
 
 /**
@@ -9,25 +9,23 @@ import MagneticElement from "../effects/MagneticElement";
  * Each node represents a section (layer) in the neural network.
  */
 
-const LAYERS = [
-  { path: "/", label: "Input", shortLabel: "IN", section: "Overview" },
-  { path: "/projects", label: "Hidden 1", shortLabel: "H1", section: "Projects" },
-  { path: "/skills", label: "Hidden 2", shortLabel: "H2", section: "Skills" },
-  { path: "/research", label: "Hidden 3", shortLabel: "H3", section: "Research" },
-  { path: "/about", label: "Output", shortLabel: "OUT", section: "About" },
-];
+// Only show main nav items (exclude blog in sidebar)
+const SIDEBAR_ITEMS = NAVIGATION_ITEMS.filter((item) => item.path !== "/blog");
 
 export default function LayerNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const activeIdx = getActiveLayer(location.pathname);
+  const activeIdx = SIDEBAR_ITEMS.findIndex((item) => {
+    if (item.path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(item.path);
+  });
 
   return (
     <nav
       className="fixed left-0 top-0 h-full z-30 hidden md:flex flex-col items-center justify-center w-20 gap-0"
       aria-label="Network layers"
     >
-      {LAYERS.map((layer, idx) => {
+      {SIDEBAR_ITEMS.map((layer, idx) => {
         const isActive = activeIdx === idx;
 
         return (
@@ -48,7 +46,7 @@ export default function LayerNav() {
             <button
               onClick={() => navigate(layer.path)}
               className="relative group cursor-pointer flex items-center justify-center"
-              aria-label={`Navigate to ${layer.section}`}
+              aria-label={`Navigate to ${layer.label}`}
               aria-current={isActive ? "page" : undefined}
             >
               {/* Glow ring for active */}
@@ -81,7 +79,7 @@ export default function LayerNav() {
                 <div className="bg-slate-900/90 backdrop-blur border border-slate-700/50 rounded-lg px-3 py-1.5 text-xs font-mono">
                   <span className="text-cyan-400">{layer.shortLabel}</span>
                   <span className="text-slate-500 mx-1.5">·</span>
-                  <span className="text-slate-300">{layer.section}</span>
+                  <span className="text-slate-300">{layer.label}</span>
                 </div>
               </div>
             </button>

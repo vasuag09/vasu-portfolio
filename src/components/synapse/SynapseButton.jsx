@@ -8,7 +8,7 @@ import MagneticElement from "../effects/MagneticElement";
  */
 export default function SynapseButton({ onClick }) {
   return (
-    <MagneticElement strength={0.3} className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-40">
+    <MagneticElement strength={0.3} className="fixed bottom-24 right-6 md:bottom-8 md:right-8 z-40">
     <motion.button
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}

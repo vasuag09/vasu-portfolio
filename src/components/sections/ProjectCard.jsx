@@ -101,7 +101,7 @@ export default function ProjectCard({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between mt-auto p-5 pt-4 border-t border-[rgba(0,212,255,0.04)] mt-3">
+        <div className="flex items-center justify-between mt-auto p-5 pt-4 border-t border-[rgba(0,212,255,0.04)]">
           {project.details?.metrics && (
             <span className="text-[10px] font-mono text-slate-500 truncate max-w-[65%]">
               {project.details.metrics.substring(0, 50)}

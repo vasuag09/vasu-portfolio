@@ -7,6 +7,12 @@ interface SectionProps {
   label: string;
   /** Chapter length in svh (AWARD-RESEARCH §4: tall chapters, camera rests mid-section). */
   heightSvh: number;
+  /**
+   * "start" pins content into the FIRST viewport of the chapter (hero: the
+   * name must be visible at scroll 0, not buried mid-runway). Default
+   * centers content at the camera rest-pose.
+   */
+  align?: "start" | "center";
   children: ReactNode;
 }
 
@@ -19,7 +25,13 @@ interface SectionProps {
  * busy scene (pure gradient — backdrop blur over WebGL is a frame-time tax),
  * and the content block reveals once on first scroll-in.
  */
-export function Section({ id, label, heightSvh, children }: SectionProps) {
+export function Section({
+  id,
+  label,
+  heightSvh,
+  align = "center",
+  children,
+}: SectionProps) {
   const headingId = `${id}-heading`;
   return (
     <section
@@ -27,8 +39,11 @@ export function Section({ id, label, heightSvh, children }: SectionProps) {
       data-chapter={id}
       data-chapter-label={label}
       aria-labelledby={headingId}
-      className="relative flex items-center"
-      style={{ minHeight: `${heightSvh}svh` }}
+      className={`relative flex ${align === "start" ? "items-start" : "items-center"}`}
+      style={{
+        minHeight: `${heightSvh}svh`,
+        paddingTop: align === "start" ? "max(24svh, 7rem)" : undefined,
+      }}
     >
       <div className="relative mx-auto w-full max-w-3xl px-6">
         <div

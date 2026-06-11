@@ -24,7 +24,7 @@ export default function Home() {
       <SynapseTerminal />
 
       <main className="relative" style={{ zIndex: "var(--z-content)" }}>
-        <Section id="hero" label="Neural Core" heightSvh={220}>
+        <Section id="hero" label="Neural Core" heightSvh={220} align="start">
           <h1
             className="mt-4 font-bold leading-[var(--leading-tight)]"
             style={{ fontSize: "var(--text-hero)" }}

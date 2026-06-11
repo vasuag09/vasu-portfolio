@@ -20,6 +20,9 @@
 html {
   background: var(--bg-base);
   color-scheme: dark;
+  /* Modal scroll locks toggle overflow — a stable gutter prevents the
+     15px reflow jolt when the scrollbar disappears. */
+  scrollbar-gutter: stable;
 }
 
 body {

@@ -6,6 +6,7 @@ import { getSkillsForProject } from "@/lib/graph-adjacency";
 import { getSkill } from "@/data/skills-graph";
 import { setGraphState } from "@/lib/graph-store";
 import { useGraphState } from "@/hooks/useGraphState";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { scrollToSection, isSectionInView } from "@/lib/scroll-to-section";
 import { VeoClip } from "@/components/media/VeoClip";
 import { veoSources, veoPoster } from "@/lib/veo-sources";
@@ -63,6 +64,10 @@ export function CaseStudyPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
 
+  // The page must not scroll behind the panel (Lenis listens on window —
+  // wheel over the panel would move the document, not the case study).
+  useScrollLock(Boolean(selectedProjectId));
+
   // Deep link in: ?project=nm-gpt opens the panel on load.
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("project");
@@ -82,8 +87,9 @@ export function CaseStudyPanel() {
       scrollRef.current?.scrollTo({ top: 0 });
       // Camera rest-pose alignment: the glowing node lives in the projects
       // region — fly there so the scene context matches the case study.
+      // force: the scroll lock has stopped Lenis; the flight still runs.
       if (!isSectionInView("projects")) {
-        scrollToSection("projects", false);
+        scrollToSection("projects", false, { force: true });
       }
     } else {
       restoreFocusRef.current?.focus();
@@ -107,19 +113,36 @@ export function CaseStudyPanel() {
   const isFlagship = project.tier === "flagship";
 
   return (
-    <aside
-      ref={panelRef}
-      role="dialog"
-      aria-label={`${project.title} case study`}
-      tabIndex={-1}
-      className="fixed inset-y-0 right-0 w-full max-w-xl border-l outline-none"
-      style={{
-        zIndex: "var(--z-overlay)",
-        background: "var(--bg-elevated)",
-        borderColor: "var(--border)",
-      }}
-    >
-      <div ref={scrollRef} className="h-full overflow-y-auto p-6 md:p-8">
+    <>
+      {/* Backdrop: recedes the page so panel and content never read as
+          colliding layers; click closes. */}
+      <div
+        role="presentation"
+        onClick={() => setGraphState({ selectedProjectId: null })}
+        className="fixed inset-0"
+        style={{
+          zIndex: "var(--z-overlay)",
+          background: "oklch(8% 0.02 250 / 0.65)",
+        }}
+      />
+      <aside
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${project.title} case study`}
+        tabIndex={-1}
+        className="fixed inset-y-0 right-0 w-full max-w-xl border-l outline-none"
+        style={{
+          zIndex: "var(--z-overlay)",
+          background: "var(--bg-elevated)",
+          borderColor: "var(--border)",
+        }}
+      >
+        <div
+          ref={scrollRef}
+          data-lenis-prevent
+          className="h-full overflow-y-auto overscroll-contain p-6 md:p-8"
+        >
         {/* ---- Hero ---- */}
         <div className="flex items-start justify-between gap-4">
           <p
@@ -308,7 +331,8 @@ export function CaseStudyPanel() {
             flagships.
           </p>
         ) : null}
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </>
   );
 }

@@ -4,7 +4,11 @@ import { scrollState } from "./scroll-state";
  * Shared chapter navigation (ChapterNav dots, panel camera alignment).
  * Smooth via Lenis when it exists; native jump otherwise (reduced motion).
  */
-export function scrollToSection(id: string, immediate: boolean): void {
+export function scrollToSection(
+  id: string,
+  immediate: boolean,
+  options: { force?: boolean } = {},
+): void {
   const el = document.getElementById(id);
   if (!el) return;
   if (scrollState.lenis) {
@@ -12,6 +16,8 @@ export function scrollToSection(id: string, immediate: boolean): void {
       offset: 0,
       duration: immediate ? 0 : 1.4,
       immediate,
+      // force: animate even while lenis is stopped (modal scroll lock).
+      force: options.force ?? false,
     });
   } else {
     el.scrollIntoView({ behavior: "auto" });

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSynapse } from "@/hooks/useSynapse";
 import { setGraphState } from "@/lib/graph-store";
 import { useGraphState } from "@/hooks/useGraphState";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 /**
  * Synapse terminal (Phase 6) — ported from v4 SynapsePanel, restyled to the
@@ -29,6 +30,10 @@ export function SynapseTerminal() {
   const restoreFocusRef = useRef<HTMLElement | null>(null);
 
   const close = () => setGraphState({ synapseOpen: false });
+
+  // Freeze the page while the terminal is open (wheel over the terminal
+  // must scroll the history, not the document behind it).
+  useScrollLock(synapseOpen);
 
   // Focus management + Esc + Tab trap.
   useEffect(() => {
@@ -130,7 +135,7 @@ export function SynapseTerminal() {
         </div>
 
         {/* History */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div data-lenis-prevent className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
           <ul className="flex flex-col gap-3" role="list">
             {messages.map((message, index) => (
               <li key={index} className="flex gap-3">

@@ -1,0 +1,77 @@
+/*
+ * VASU_OS 5 "Neural Core" — design tokens
+ * Palette locked per docs/v5/AWARD-RESEARCH.md §5 (OKLCH discipline):
+ * lightness = elevation, chroma ≤0.03 on neutrals, ONE accent used sparingly.
+ */
+
+:root {
+  /* ---- Color: surfaces ---- */
+  --bg-base: oklch(8% 0.02 250); /* deep space navy-black, not pure #000 */
+  --bg-elevated: oklch(14% 0.01 250);
+  --bg-overlay: oklch(18% 0.015 250);
+
+  /* ---- Color: text ---- */
+  --text: oklch(92% 0.02 250);
+  --text-muted: oklch(68% 0.01 250);
+  --text-faint: oklch(48% 0.01 250);
+
+  /* ---- Color: THE accent (phosphor/signal green) ---- */
+  --accent: oklch(58% 0.18 150);
+  --accent-bright: oklch(72% 0.2 150);
+  --accent-dim: oklch(40% 0.12 150);
+  --accent-glow: oklch(58% 0.18 150 / 0.35);
+
+  /* ---- Color: semantic ---- */
+  --color-danger: oklch(60% 0.18 25);
+  --color-warning: oklch(75% 0.15 85);
+  --border: oklch(26% 0.015 250);
+  --border-active: oklch(58% 0.18 150 / 0.6);
+
+  /* ---- Scene node colors (skills-graph categories) ---- */
+  --node-genai: oklch(58% 0.18 150); /* accent — the core story */
+  --node-ml: oklch(62% 0.1 230);
+  --node-fullstack: oklch(66% 0.09 280);
+  --node-lang: oklch(70% 0.06 250);
+  --node-infra: oklch(64% 0.08 60);
+  --node-project: oklch(85% 0.03 250);
+  --node-flagship: oklch(72% 0.2 150);
+
+  /* ---- Typography (IBM Plex Mono is the identity face) ---- */
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo,
+    monospace;
+  --text-xs: clamp(0.6875rem, 0.65rem + 0.15vw, 0.75rem);
+  --text-sm: clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem);
+  --text-base: clamp(1rem, 0.92rem + 0.4vw, 1.125rem);
+  --text-lg: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --text-xl: clamp(1.75rem, 1.4rem + 1.6vw, 2.75rem);
+  --text-hero: clamp(2.75rem, 1rem + 7vw, 7.5rem);
+  --leading-tight: 1.1;
+  --leading-body: 1.6;
+  --tracking-wide: 0.08em;
+  --tracking-terminal: 0.12em;
+
+  /* ---- Spacing rhythm ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --space-6: 4rem;
+  --space-section: clamp(4rem, 3rem + 5vw, 10rem);
+
+  /* ---- Motion (compositor-friendly only) ---- */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.45, 0, 0.55, 1);
+  /* Camera grammar (AWARD-RESEARCH §4): scrub 1, Lenis lerp 0.08–0.12 */
+  --scroll-lerp: 0.1;
+
+  /* ---- Z-layers (ADR-4: canvas behind, DOM on top) ---- */
+  --z-canvas: -1;
+  --z-content: 1;
+  --z-nav: 10;
+  --z-overlay: 100;
+  --z-boot: 1000;
+}

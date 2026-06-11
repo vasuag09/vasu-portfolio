@@ -1,3 +1,5 @@
+import { BootSequence } from "@/components/boot/BootSequence";
+import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { CanvasRoot } from "@/components/canvas/CanvasRoot";
 import { SmoothScroll } from "@/components/scroll/SmoothScroll";
 import { ChapterNav } from "@/components/nav/ChapterNav";
@@ -17,6 +19,8 @@ import { SynapseTrigger } from "@/components/synapse/SynapseTrigger";
 export default function Home() {
   return (
     <>
+      <BootSequence />
+      <CustomCursor />
       <SmoothScroll />
       <CanvasRoot />
       <ChapterNav />

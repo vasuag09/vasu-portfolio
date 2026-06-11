@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { sections } from "@/data/sections-v5";
 import { scrollToSection } from "@/lib/scroll-to-section";
+import { sectionIndexForKey } from "@/lib/nav-keys";
 import type { SectionId } from "@/data/types";
 
 const SECTION_IDS = new Set<string>(sections.map((s) => s.id));
@@ -23,6 +24,26 @@ export function ChapterNav() {
       // After first paint so layout (and Lenis) exist.
       requestAnimationFrame(() => scrollToSection(requested, true));
     }
+  }, []);
+
+  // Number keys 1–5 jump chapters (Phase 10). Damped flight, same path as
+  // dot clicks. Suppressed while typing (Synapse input), while an overlay
+  // dialog owns the screen, and during the boot ritual (whose skip handler
+  // also listens on window — without this guard one keypress would both
+  // skip boot AND jump).
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (document.documentElement.hasAttribute("data-boot")) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      const index = sectionIndexForKey(event.key, sections.length);
+      if (index === null) return;
+      scrollToSection(sections[index].id, false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   // Active chapter = section crossing the viewport's vertical center.

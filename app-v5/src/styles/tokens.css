@@ -74,4 +74,5 @@
   --z-nav: 10;
   --z-overlay: 100;
   --z-boot: 1000;
+  --z-cursor: 1200; /* above boot: the cursor exists during the ritual too */
 }

@@ -159,7 +159,10 @@ export function NeuralNetwork() {
 
   const { nodeGeometry, instances, indexById } = useMemo(() => {
     const { instances, indexById } = buildNodeInstances();
-    const geometry = new THREE.SphereGeometry(1, 24, 24);
+    // 48 segments: the section cores fill ~200px on screen — at 24 the
+    // silhouette visibly facets ("low-res circles"). 75 instances make the
+    // extra vertices trivial.
+    const geometry = new THREE.SphereGeometry(1, 48, 48);
     const colors = new Float32Array(instances.length * 3);
     const intensities = new Float32Array(instances.length);
     const color = new THREE.Color();

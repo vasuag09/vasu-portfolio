@@ -33,7 +33,15 @@ export function Effects({ tier }: { tier: ParticleTier }) {
   const composerRef = useRef<EffectComposer | null>(null);
 
   useEffect(() => {
-    const composer = new EffectComposer(gl);
+    // MSAA happens HERE, not on the canvas: with a composer, the scene is
+    // drawn into this target, so `samples` on it is the only anti-aliasing
+    // that counts. HalfFloat keeps HDR headroom for the bloom threshold.
+    const drawSize = gl.getDrawingBufferSize(new THREE.Vector2());
+    const msaaTarget = new THREE.WebGLRenderTarget(drawSize.x, drawSize.y, {
+      type: THREE.HalfFloatType,
+      samples: 8,
+    });
+    const composer = new EffectComposer(gl, msaaTarget);
     composer.addPass(new RenderPass(scene, camera));
 
     if (tier.depthOfField) {

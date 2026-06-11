@@ -5,6 +5,7 @@ import { getProject, projects } from "@/data/projects-v5";
 import { getSkillsForProject } from "@/lib/graph-adjacency";
 import { getSkill } from "@/data/skills-graph";
 import { setGraphState } from "@/lib/graph-store";
+import { afterNextPaint } from "@/lib/after-paint";
 import { useGraphState } from "@/hooks/useGraphState";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { scrollToSection, isSectionInView } from "@/lib/scroll-to-section";
@@ -34,6 +35,13 @@ const KNOWN_IDS = new Set(projects.map((p) => p.id));
 const FLAGSHIP_ORDER = projects
   .filter((p) => p.tier === "flagship")
   .map((p) => p.id);
+
+// Close defers the unmount + scroll-unlock past the next paint — the
+// full-document relayout otherwise lands inside the interaction (Phase-8
+// INP finding: 300–550ms close frames on an unthrottled CPU).
+function closeCaseStudy() {
+  afterNextPaint(() => setGraphState({ selectedProjectId: null }));
+}
 
 function nextFlagshipId(currentId: string): string {
   const index = FLAGSHIP_ORDER.indexOf(currentId);
@@ -99,7 +107,7 @@ export function CaseStudyPanel() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setGraphState({ selectedProjectId: null });
+      if (event.key === "Escape") closeCaseStudy();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -118,7 +126,7 @@ export function CaseStudyPanel() {
           colliding layers; click closes. */}
       <div
         role="presentation"
-        onClick={() => setGraphState({ selectedProjectId: null })}
+        onClick={closeCaseStudy}
         className="fixed inset-0"
         style={{
           zIndex: "var(--z-overlay)",
@@ -153,7 +161,7 @@ export function CaseStudyPanel() {
           </p>
           <button
             type="button"
-            onClick={() => setGraphState({ selectedProjectId: null })}
+            onClick={closeCaseStudy}
             aria-label="Close case study"
             className="cursor-pointer rounded border px-2 py-0.5 text-[length:var(--text-sm)] transition-colors duration-[var(--duration-fast)] hover:border-[var(--border-active)]"
             style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}

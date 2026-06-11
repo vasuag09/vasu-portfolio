@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { CanvasErrorBoundary } from "./CanvasErrorBoundary";
 
@@ -12,9 +13,32 @@ import { CanvasErrorBoundary } from "./CanvasErrorBoundary";
  */
 const SceneCanvas = dynamic(() => import("./SceneCanvas"), { ssr: false });
 
+/**
+ * ADR-2: the scene chunk loads AFTER first paint. ~250KB gz of three.js
+ * evaluating during hydration pushes mobile LCP/TBT past budget (Phase-8
+ * measurement), so the import is gated on an idle slot. The 2s timeout
+ * bounds the wait on busy main threads; Safari lacks requestIdleCallback,
+ * hence the timer fallback.
+ */
+function useIdleMount(): boolean {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(() => setReady(true), {
+        timeout: 2000,
+      });
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = window.setTimeout(() => setReady(true), 300);
+    return () => window.clearTimeout(timer);
+  }, []);
+  return ready;
+}
+
 export function CanvasRoot() {
   const reducedMotion = useReducedMotion();
-  if (reducedMotion) return null;
+  const idle = useIdleMount();
+  if (reducedMotion || !idle) return null;
 
   return (
     <div

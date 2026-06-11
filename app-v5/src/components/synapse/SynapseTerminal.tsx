@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSynapse } from "@/hooks/useSynapse";
 import { setGraphState } from "@/lib/graph-store";
+import { afterNextPaint } from "@/lib/after-paint";
 import { useGraphState } from "@/hooks/useGraphState";
 import { useScrollLock } from "@/hooks/useScrollLock";
 
@@ -29,7 +30,9 @@ export function SynapseTerminal() {
   const endRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
 
-  const close = () => setGraphState({ synapseOpen: false });
+  // Deferred past the next paint: unmount + scroll-unlock relayout must not
+  // land inside the interaction (Phase-8 INP finding, see after-paint.ts).
+  const close = () => afterNextPaint(() => setGraphState({ synapseOpen: false }));
 
   // Freeze the page while the terminal is open (wheel over the terminal
   // must scroll the history, not the document behind it).

@@ -5,7 +5,9 @@ import "./globals.css";
 const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  // Only the weights actually used: 400 body, 500 medium accents, 700 headings.
+  // Every listed weight becomes a preloaded woff2 ahead of the LCP paint.
+  weight: ["400", "500", "700"],
   display: "swap",
 });
 

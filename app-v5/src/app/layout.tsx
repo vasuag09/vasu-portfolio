@@ -41,7 +41,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plexMono.variable} h-full antialiased`}>
+    // suppressHydrationWarning is scoped to THIS element's attributes only:
+    // the pre-paint boot script below mutates html[data-boot] before React
+    // hydrates, which is intentional and must not be "fixed" by React.
+    <html
+      lang="en"
+      className={`${plexMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <body className="min-h-full">
         {/* Pre-paint boot decision (Phase 10): runs synchronously during
             parsing, BEFORE the overlay or hero paint — return visitors and

@@ -6,8 +6,9 @@ import * as THREE from "three";
  *  - instanced rendering (instanceMatrix in the vertex stage)
  *  - per-instance color + emissive intensity (aColor, aIntensity)
  *    so flagship/accent nodes exceed bloom threshold (selective bloom)
- *  - uActive/uHover survive as global uniforms; Phase 3 moves activation
- *    to a per-instance attribute for edge highlighting.
+ *  - per-instance activation (aActive, Phase 3): hovering a skill in the
+ *    DOM overlay glows exactly the connected nodes — active nodes pulse
+ *    and get pushed past the bloom threshold.
  */
 export function createNodeMaterial(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
@@ -16,20 +17,21 @@ export function createNodeMaterial(): THREE.ShaderMaterial {
     side: THREE.FrontSide,
     uniforms: {
       uTime: { value: 0 },
-      uActive: { value: 0.0 },
-      uHover: { value: 0.0 },
     },
     vertexShader: /* glsl */ `
       attribute vec3 aColor;
       attribute float aIntensity;
+      attribute float aActive;
       varying vec3 vNormal;
       varying vec3 vViewDir;
       varying vec3 vColor;
       varying float vIntensity;
+      varying float vActive;
 
       void main() {
         vColor = aColor;
         vIntensity = aIntensity;
+        vActive = aActive;
         // instanceMatrix is uniform-scale here, so normalMatrix stays valid
         vec4 worldPosition = instanceMatrix * vec4(position, 1.0);
         vNormal = normalize(normalMatrix * mat3(instanceMatrix) * normal);
@@ -40,12 +42,11 @@ export function createNodeMaterial(): THREE.ShaderMaterial {
     `,
     fragmentShader: /* glsl */ `
       uniform float uTime;
-      uniform float uActive;
-      uniform float uHover;
       varying vec3 vNormal;
       varying vec3 vViewDir;
       varying vec3 vColor;
       varying float vIntensity;
+      varying float vActive;
 
       void main() {
         // Fresnel rim glow — brighter at edges (v4 heritage).
@@ -58,18 +59,20 @@ export function createNodeMaterial(): THREE.ShaderMaterial {
         float core = max(dot(vNormal, vViewDir), 0.0);
         core = pow(core, 1.5) * 0.4;
 
+        // Active nodes pulse (v4's uActive behavior, now per instance)
         float pulse = sin(uTime * 2.0) * 0.15 + 0.85;
-        float activePulse = mix(1.0, pulse, uActive);
+        float activePulse = mix(1.0, pulse, vActive);
 
         float intensity = (fresnel * 0.8 + core) * activePulse;
-        intensity += uHover * 0.3 + uActive * 0.4;
+        intensity += vActive * 0.5;
 
-        float alpha = (core * 0.8 + fresnel * 0.6) * (0.6 + uActive * 0.4 + uHover * 0.2);
+        float alpha = (core * 0.8 + fresnel * 0.6) * (0.6 + vActive * 0.4);
         alpha = clamp(alpha, 0.0, 1.0);
 
-        // aIntensity > 1 pushes accent nodes past the bloom luminance
-        // threshold — this is what makes bloom selective.
-        gl_FragColor = vec4(vColor * intensity * vIntensity, alpha);
+        // aIntensity > 1 blooms at rest; activation pushes ANY node past
+        // the threshold — the glow IS the connection feedback.
+        float hdr = vIntensity * (1.0 + vActive * 1.6);
+        gl_FragColor = vec4(vColor * intensity * hdr, alpha);
       }
     `,
   });

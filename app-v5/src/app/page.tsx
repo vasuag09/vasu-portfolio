@@ -2,15 +2,15 @@ import { CanvasRoot } from "@/components/canvas/CanvasRoot";
 import { SmoothScroll } from "@/components/scroll/SmoothScroll";
 import { ChapterNav } from "@/components/nav/ChapterNav";
 import { Section } from "@/components/layout/Section";
-import { projects } from "@/data/projects-v5";
-import { skills } from "@/data/skills-graph";
+import { SkillsOverlay } from "@/components/graph/SkillsOverlay";
+import { ProjectList } from "@/components/graph/ProjectList";
+import { ProjectPanel } from "@/components/graph/ProjectPanel";
 
 /**
- * Phase-1 walking skeleton: five real-DOM chapters over the fixed canvas.
- * Copy is placeholder voice — final flagship copy lands in Phase 5.
+ * Five real-DOM chapters over the fixed canvas. The skills and projects
+ * regions are interactive (Phase 3): DOM hover/selection drives the scene
+ * glow through the graph store. Final flagship copy lands in Phase 5.
  */
-
-const flagships = projects.filter((p) => p.tier === "flagship");
 
 export default function Home() {
   return (
@@ -18,6 +18,7 @@ export default function Home() {
       <SmoothScroll />
       <CanvasRoot />
       <ChapterNav />
+      <ProjectPanel />
 
       <main className="relative" style={{ zIndex: "var(--z-content)" }}>
         <Section id="hero" label="Neural Core" heightSvh={220}>
@@ -43,24 +44,7 @@ export default function Home() {
           >
             Deployments
           </h2>
-          <ul className="mt-6 flex flex-col gap-4">
-            {flagships.map((project) => (
-              <li key={project.id}>
-                <h3 className="font-medium" style={{ fontSize: "var(--text-base)" }}>
-                  {project.title}
-                </h3>
-                <p
-                  className="mt-1 max-w-xl"
-                  style={{
-                    color: "var(--text-muted)",
-                    fontSize: "var(--text-sm)",
-                  }}
-                >
-                  {project.oneLiner}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <ProjectList />
         </Section>
 
         <Section id="skills" label="Skills Graph" heightSvh={280}>
@@ -71,9 +55,12 @@ export default function Home() {
             Weights &amp; Biases
           </h2>
           <p className="mt-4 max-w-xl" style={{ color: "var(--text-muted)" }}>
-            {skills.length} skills wired to the projects that actually use them
-            — a real graph, not decoration. Interactive in Phase 3.
+            Every skill below is wired to the projects that actually use it —
+            a real graph, not decoration. Hover to trace the connections.
           </p>
+          <div className="mt-8">
+            <SkillsOverlay />
+          </div>
         </Section>
 
         <Section id="about" label="About" heightSvh={240}>

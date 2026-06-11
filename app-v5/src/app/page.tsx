@@ -4,7 +4,7 @@ import { ChapterNav } from "@/components/nav/ChapterNav";
 import { Section } from "@/components/layout/Section";
 import { SkillsOverlay } from "@/components/graph/SkillsOverlay";
 import { ProjectList } from "@/components/graph/ProjectList";
-import { ProjectPanel } from "@/components/graph/ProjectPanel";
+import { CaseStudyPanel } from "@/components/graph/CaseStudyPanel";
 
 /**
  * Five real-DOM chapters over the fixed canvas. The skills and projects
@@ -18,7 +18,7 @@ export default function Home() {
       <SmoothScroll />
       <CanvasRoot />
       <ChapterNav />
-      <ProjectPanel />
+      <CaseStudyPanel />
 
       <main className="relative" style={{ zIndex: "var(--z-content)" }}>
         <Section id="hero" label="Neural Core" heightSvh={220}>

@@ -1,26 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { scrollState } from "@/lib/scroll-state";
 import { sections } from "@/data/sections-v5";
+import { scrollToSection } from "@/lib/scroll-to-section";
 import type { SectionId } from "@/data/types";
 
 const SECTION_IDS = new Set<string>(sections.map((s) => s.id));
-
-function scrollToSection(id: string, immediate: boolean) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (scrollState.lenis) {
-    scrollState.lenis.scrollTo(el, {
-      offset: 0,
-      duration: immediate ? 0 : 1.4,
-      immediate,
-    });
-  } else {
-    // Reduced motion / no Lenis: native jump, no smooth animation (ADR-6).
-    el.scrollIntoView({ behavior: "auto" });
-  }
-}
 
 /**
  * Chapter rail (AWARD-RESEARCH §3.10): dots + labels, keyboard accessible,

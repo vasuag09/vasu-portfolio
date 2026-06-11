@@ -45,9 +45,13 @@ export interface Project {
   tier: ProjectTier;
   status: ProjectStatus;
   oneLiner: string;
-  /** Problem → outcome narrative; empty for archive-tier nodes. */
+  /** The pain that existed before the project (case-study hero block). */
+  problem?: string;
+  /** What the project does about it — the outcome story. */
   narrative?: string;
   contribution?: string;
+  /** Veo clip name in /public/veo (see VEO-BRIEF.md naming convention). */
+  clip?: string;
   stack: readonly string[];
   /** Verified metrics only — every claim must survive its own hyperlink. */
   metrics?: readonly string[];

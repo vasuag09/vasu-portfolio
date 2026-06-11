@@ -18,12 +18,15 @@ const flagships: readonly Project[] = [
     title: "FundlyMart WhatsApp Bot",
     tier: "flagship",
     status: "production",
+    clip: "fundlymart",
     oneLiner:
       "Production B2B pharmacy ordering AI agent — bulk orders between retailers and distributors, entirely over WhatsApp.",
+    problem:
+      "India's pharmacy supply chain runs on WhatsApp. Orders arrive as free-text messages, voice notes, and photos. Distributors retype everything by hand, and every retype is an error waiting to ship.",
     narrative:
-      "India's pharmacy trade runs on WhatsApp. FundlyMart replaces order-by-message chaos with a structured agent handling catalog search, cart, checkout, and order lifecycle in one conversational flow — deployed at Ardour Analytics for a live distributor network. Act two, in progress: a voice calling bot (inbound + outbound AI relationship manager) on Exotel + Sarvam, built on the same conversation engine — one agentic core, two channels.",
+      "FundlyMart turns that chaos into one structured agent: catalog search, cart, checkout, and order lifecycle in a single conversational flow. Deployed at Ardour Analytics for a live distributor network. Act two is in progress — a voice agent on Exotel + Sarvam handling inbound and outbound calls on the same conversation engine. One agentic core, two channels.",
     contribution:
-      "End-to-end ownership under the CTO: domain model, 17-tool registry, hybrid intent pipeline (keyword matcher ~70% of traffic at <10ms, LLM fallback via generateObject), migration to a manual per-step tool-loop with registry rebuild between steps, and the test suite.",
+      "End-to-end ownership under the CTO. Designed the domain model. Built the 17-tool registry. Shipped the hybrid intent pipeline — a keyword matcher resolves ~70% of traffic in under 10ms, the LLM only sees the hard cases. Architected the migration to a manual per-step tool-loop, closed 8 gaps in the migration plan, wrote the test suite.",
     stack: [
       "TypeScript",
       "Node.js",
@@ -37,7 +40,7 @@ const flagships: readonly Project[] = [
     metrics: [
       "2,314 tests across 61 files",
       "17-tool LLM agent loop",
-      "~70% of traffic resolved at <10ms without an LLM call",
+      "~70% of traffic resolved in <10ms with zero LLM calls",
     ],
   },
   {
@@ -45,12 +48,15 @@ const flagships: readonly Project[] = [
     title: "NM-GPT (CollegeGPT)",
     tier: "flagship",
     status: "live",
+    clip: "nm-gpt",
     oneLiner:
       "RAG chatbot for NMIMS MPSTME answering student, faculty, and admin queries grounded in official institutional documents.",
+    problem:
+      "Campus answers live in dozens of PDFs, three portals, and word of mouth. Students ask seniors. Seniors guess. The right answer exists — buried on page 47 of a circular nobody opens.",
     narrative:
-      "Campus knowledge lives scattered across PDFs, portals, and WhatsApp groups. NM-GPT centralizes it behind one chatbot with per-response source citations — adopted by 1,200+ students and demoed live to the Dean after a 7-day MVP sprint.",
+      "NM-GPT puts all of it behind one chatbot that cites its sources on every response — zero-hallucination by design, because every answer must point back to an official document. Adopted by 1,200+ students at NMIMS Mumbai. Built as a 7-day MVP sprint that ended in a live demo to the Dean.",
     contribution:
-      "Full-stack solo build: PyMuPDF ingestion → chunking → Gemini embeddings → FAISS, LangChain retrieval chain, FastAPI /chat and /ingest, Next.js streaming UI over SSE.",
+      "Full-stack solo build. PDF ingestion pipeline: PyMuPDF → chunking → Gemini embeddings → FAISS. LangChain retrieval chain with context injection. FastAPI /chat and /ingest endpoints. Next.js streaming UI over SSE.",
     stack: [
       "Python",
       "LangChain",
@@ -61,7 +67,11 @@ const flagships: readonly Project[] = [
       "PyMuPDF",
       "SSE",
     ],
-    metrics: ["1,200+ active student users", "7-day MVP → Dean demo"],
+    metrics: [
+      "1,200+ active student users",
+      "7-day MVP → live Dean demo",
+      "Source citations on every answer",
+    ],
     repoUrl: "https://github.com/vasuag09/CollegeGPT",
   },
   {
@@ -71,11 +81,18 @@ const flagships: readonly Project[] = [
     status: "under-review",
     oneLiner:
       "Two production observability metrics for Ray Serve's AsyncioRouter — the decoupled routing primitives used in LLM serving (PR #62356).",
+    problem:
+      "Ray Serve's new decoupled routing primitives shipped blind: no visibility into how long a replica slot waits between selection and dispatch, and no count of slots released without ever dispatching.",
     narrative:
-      "Ray Serve's new routing primitives shipped without telemetry. This PR adds a selection→dispatch latency histogram (serve_selection_dispatch_gap_ms) and a dropped-slot counter (serve_selections_released_without_dispatch), with unit tests across normal and failure scenarios — real infrastructure code in a 41k-star AI compute repo, in the LLM serving path.",
+      "This PR adds the missing telemetry: a selection→dispatch latency histogram (serve_selection_dispatch_gap_ms, 11 buckets from 1ms to 5s) and a dropped-slot counter, both tagged by deployment and application. Real infrastructure code in a 41k-star AI compute repo, in the LLM serving path.",
     contribution:
-      "Implemented both metrics against issue #62163 (maintainer-curated good-first-issue), tagged by deployment and application, with failure-scenario unit tests.",
+      "Implemented both metrics against issue #62163 — a maintainer-curated good-first-issue in the LLM + Ray Serve area. Unit tests cover normal and failure scenarios, including context exits without dispatch.",
     stack: ["Python", "Ray Serve", "async", "pytest"],
+    metrics: [
+      "2 production metrics in the LLM serving path",
+      "41k-star repo (ray-project/ray)",
+      "11-bucket latency histogram, 1ms–5s",
+    ],
     externalUrl: "https://github.com/ray-project/ray/pull/62356",
     framingNote:
       'PR is OPEN — frame as "submitted PR under review". Never "merged". Re-check status at /ship.',
@@ -87,10 +104,17 @@ const flagships: readonly Project[] = [
     status: "archived",
     oneLiner:
       "AI-powered resume scorer and job tracker — ATS keyword matching, section-level compatibility scoring, AI feedback loop.",
+    problem:
+      "Most resumes are rejected by ATS keyword filters before a human ever reads them — and applicants get zero feedback about why.",
     narrative:
-      "Full-stack AI product: upload a resume, get an ATS compatibility score with section-level diagnostics and AI-driven rewrite suggestions, then track applications on a dashboard.",
-    contribution: "Solo build across React frontend, Node API, and Gemini scoring pipeline.",
+      "Insightify shows the score before the rejection: upload a resume, get an ATS compatibility score with section-level diagnostics and AI rewrite suggestions, then track every application on one dashboard.",
+    contribution:
+      "Solo build across the React frontend, Node API, and Gemini scoring pipeline — NLP keyword matching plus section-level scoring logic.",
     stack: ["React", "Node.js", "Gemini API", "MongoDB"],
+    metrics: [
+      "Section-level ATS scoring",
+      "AI rewrite feedback loop",
+    ],
     repoUrl: "https://github.com/vasuag09/insightify-react",
   },
   {
@@ -98,13 +122,21 @@ const flagships: readonly Project[] = [
     title: "GeoVision-LULC",
     tier: "flagship",
     status: "archived",
+    clip: "geovision",
     oneLiner:
       "Semantic segmentation for Land Use / Land Cover classification on Sentinel-2 multispectral satellite imagery.",
+    problem:
+      "Sentinel-2 photographs the entire planet every five days. Manual land-use mapping takes months per region — the data outruns the humans by orders of magnitude.",
     narrative:
-      "Automates LULC classification across urban, agricultural, water, and forest classes with U-Net / DeepLabV3+ on real satellite data — geospatial AI as a deliberately non-standard depth signal.",
+      "GeoVision classifies the land automatically: urban, agricultural, water, and forest zones segmented from raw 13-band multispectral imagery with U-Net and DeepLabV3+. Geospatial AI as a deliberately non-standard depth signal in the portfolio.",
     contribution:
-      "Full pipeline: data acquisition, multispectral preprocessing, NDVI/NDWI indices, patch-based training, IoU/mAP evaluation.",
+      "Full pipeline, solo: data acquisition, multispectral preprocessing with NDVI/NDWI spectral indices, patch-based training, evaluation on IoU, mAP, and per-class accuracy.",
     stack: ["Python", "PyTorch", "U-Net / DeepLabV3+", "Sentinel-2", "Rasterio"],
+    metrics: [
+      "13-band Sentinel-2 multispectral input",
+      "4 LULC classes, patch-based segmentation",
+      "Evaluated on IoU, mAP, per-class accuracy",
+    ],
     repoUrl: "https://github.com/vasuag09/GeoVision-LULC",
   },
 ] as const;

@@ -28,7 +28,10 @@ v4 archived to v4.vasuai.dev.
 
 ### Phase 1 — Scroll-camera rig & navigation skeleton (M) ← WALKING SKELETON
 - Lenis on native scroll; `useScrollCamera` (Lenis→GSAP ScrollTrigger→camera offset);
-  drei MotionPathControls with 5 hand-authored CubicBezierCurve3 anchors; placeholder
+  CubicBezierCurve3 chain through the 5 anchors sampled directly in useFrame
+  (NOTE 2026-06-11: drei MotionPathControls dropped — it owns the camera, which
+  conflicts with ADR-1's Lenis-ref→useFrame sync; buildCameraSpline + direct
+  sampling per ADR-3 instead); placeholder
   sections (real DOM); ChapterNav rail (dots + keyboard + `?section=` deep links);
   reduced-motion bypass.
 - **Exit:** scroll flies camera through 5 chapters in order; dot click + keyboard + deep

@@ -23,7 +23,10 @@ html {
 }
 
 body {
-  background: var(--bg-base);
+  /* Background lives on <html> only: an opaque body background would paint
+     OVER the z-index:-1 fixed canvas (negative-z layers render before
+     in-flow block backgrounds in the root stacking context — ADR-4). */
+  background: transparent;
   color: var(--text);
   font-family: var(--font-mono);
   font-size: var(--text-base);

@@ -103,15 +103,22 @@ be literal — terrain from above IS the product.
 Score each A/B; the winner per flagship + one sentence why = the locked
 direction. Record in the table below and Phase 4 is exit-complete.
 
-## Direction lock (fill in to close Phase 4)
+## Direction lock — LOCKED 2026-06-11 (reviewed from 4-frame contact sheets)
 
-| Flagship | Winner | Why | Credits spent |
-| --- | --- | --- | --- |
-| FundlyMart | A / B / retry | | |
-| NM-GPT | A / B / retry | | |
-| GeoVision | A / B / retry | | |
+| Flagship | Winner | Why |
+| --- | --- | --- |
+| FundlyMart | **B** (glass cubes) | Deep blacks, green only on edges (restraint ✓), strong shapes read at half size, "precise logistics" mood = the B2B ordering metaphor. A was a saturated wall of green with a hard loop seam. |
+| NM-GPT | **A** (paper → beam) | Full narrative arc: pages → dust → green core → single answer beam; the beam end-frame is the strongest image of the six. White mid-section is justified (paper = documents). B read as a generic server corridor. |
+| GeoVision | **A** (scanline) | Muted night terrain + one green scanline = literal product truth, scientific mood, palette obedience. B went full green wireframe — "neon everywhere" blacklist violation. |
 
-Total spent: ___ / 60 max · Remaining balance: ___ (must be ≥ 500)
+Credits: 6 Fast generations (~10cr each nominal — Vasu: confirm balance in
+Flow; must remain ≥ 500). Keep the original downloads — rejected variants
+included — as reference for the Phase-9 Quality prompts.
+
+**Phase-9 note:** regenerate ONLY the three winners at Quality tier, reusing
+their exact prompts. For FundlyMart-B request "begins with cubes already in
+formation drifting subtly" to improve loopability; for NM-GPT-A request
+"the beam fades back into floating pages at the end" for a loop seam.
 
 ## Clip delivery spec (Phase 9 finals, but Fast clips follow it too)
 

@@ -8,31 +8,73 @@ import {
   bootPhaseAt,
   scrambleText,
 } from "@/lib/boot-state";
+import { shouldShowSoundGate } from "@/lib/sound-state";
+import {
+  getSoundPreference,
+  hydrateSoundPreference,
+  setSoundPreference,
+} from "@/lib/sound-store";
+import { soundEngine } from "@/lib/sound-engine";
 
 const NAME = "VASU AGRAWAL";
 // Deterministic initial frame: server HTML and the client's first render
 // must match (hydration), and the resolve animation reads forward from it.
 const INITIAL_FRAME = scrambleText(NAME, 0, () => "█");
 
+type Stage = "gate" | "anim" | "done";
+
 /**
- * Boot ritual (Phase 10): scramble → name resolve → fade, 1.4s total.
- * Any key/pointer input skips. localStorage marks the visit so return
- * visits never see it (decided pre-paint by the layout.tsx inline script —
- * this component only animates what that script already revealed).
- * aria-hidden: purely decorative; the real content is painted underneath.
+ * Boot ritual (Phase 10) + SoundGate (Phase 7, PLAN Q4). First visit:
+ * two-button gate — the choice click is the Web Audio unlock gesture, then
+ * the scramble plays (jingle alongside when sound is on; ≤1.5s from click).
+ * Esc enters silently without persisting a choice. Return visits skip both
+ * (decided pre-paint by the layout.tsx inline script). aria: real dialog
+ * while the gate is up, decorative afterwards.
  */
 export function BootSequence() {
-  const [dismissed, setDismissed] = useState(false);
+  const [stage, setStage] = useState<Stage | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLSpanElement>(null);
+  const primaryRef = useRef<HTMLButtonElement>(null);
+  const finishRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const html = document.documentElement;
     if (html.getAttribute("data-boot") !== "play") {
-      setDismissed(true);
+      setStage("done");
       return;
     }
+    // Hydration reached us — the CSS failsafe (for dead-JS loads) must not
+    // clear an overlay that may legitimately wait on the gate.
+    overlayRef.current?.setAttribute("data-hydrated", "");
+    hydrateSoundPreference();
+    setStage(
+      shouldShowSoundGate({
+        bootPlaying: true,
+        preference: getSoundPreference(),
+      })
+        ? "gate"
+        : "anim",
+    );
+  }, []);
 
+  // Gate: focus the encouraged action; Esc enters silently (no persisted
+  // choice — the corner toggle remains the escape hatch).
+  useEffect(() => {
+    if (stage !== "gate") return;
+    primaryRef.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") finishRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [stage]);
+
+  // Scramble timeline + skip-on-any-input (never racing the gate buttons:
+  // these listeners exist only during "anim").
+  useEffect(() => {
+    if (stage !== "anim") return;
+    const html = document.documentElement;
     let raf = 0;
     let finished = false;
     const start = performance.now();
@@ -47,10 +89,12 @@ export function BootSequence() {
         // Private mode without storage: boot replays next visit. Harmless.
       }
       html.removeAttribute("data-boot");
-      // Phase-7 jingle hook: the sound layer subscribes to this event.
+      // Phase-7 hook: the sound layer / future listeners hear this on
+      // finish AND on skip.
       window.dispatchEvent(new CustomEvent(BOOT_COMPLETE_EVENT));
-      setDismissed(true);
+      setStage("done");
     };
+    finishRef.current = finish;
 
     const tick = (now: number) => {
       const elapsed = now - start;
@@ -78,16 +122,42 @@ export function BootSequence() {
       window.removeEventListener("keydown", skip);
       window.removeEventListener("pointerdown", skip);
     };
+  }, [stage]);
+
+  // Gate finish path needs to work before the anim effect installs the real
+  // finish (Esc during gate = enter silently, skipping the ritual entirely).
+  useEffect(() => {
+    finishRef.current = () => {
+      try {
+        localStorage.setItem(BOOT_STORAGE_KEY, "1");
+      } catch {
+        /* see above */
+      }
+      document.documentElement.removeAttribute("data-boot");
+      window.dispatchEvent(new CustomEvent(BOOT_COMPLETE_EVENT));
+      setStage("done");
+    };
   }, []);
 
-  if (dismissed) return null;
+  const choose = (withSound: boolean) => {
+    // Click stack = legitimate unlock gesture (autoplay policy, iOS).
+    soundEngine.unlock();
+    setSoundPreference(withSound ? "on" : "off");
+    if (withSound) soundEngine.playJingle();
+    setStage("anim");
+  };
+
+  if (stage === "done") return null;
+  const gating = stage === "gate";
 
   return (
     <div
       ref={overlayRef}
       className="boot-overlay"
-      aria-hidden="true"
-      role="presentation"
+      role={gating ? "dialog" : "presentation"}
+      aria-modal={gating || undefined}
+      aria-label={gating ? "Welcome — choose sound" : undefined}
+      aria-hidden={gating ? undefined : "true"}
     >
       <p
         className="text-[length:var(--text-xs)] tracking-[var(--tracking-terminal)] uppercase"
@@ -97,17 +167,44 @@ export function BootSequence() {
       </p>
       <span
         ref={nameRef}
+        aria-hidden="true"
         className="font-bold leading-[var(--leading-tight)]"
         style={{ fontSize: "var(--text-xl)" }}
       >
         {INITIAL_FRAME}
       </span>
-      <p
-        className="text-[length:var(--text-xs)] tracking-[var(--tracking-wide)] uppercase"
-        style={{ color: "var(--text-faint)" }}
-      >
-        any key to skip
-      </p>
+      {gating ? (
+        <div className="mt-2 flex items-center gap-4">
+          <button
+            ref={primaryRef}
+            type="button"
+            onClick={() => choose(true)}
+            className="cursor-pointer rounded border px-4 py-2 text-[length:var(--text-sm)] tracking-[var(--tracking-wide)] uppercase transition-colors duration-[var(--duration-fast)]"
+            style={{
+              borderColor: "var(--border-active)",
+              color: "var(--accent)",
+              boxShadow: "0 0 12px var(--accent-glow)",
+            }}
+          >
+            Enter with sound
+          </button>
+          <button
+            type="button"
+            onClick={() => choose(false)}
+            className="cursor-pointer rounded border px-4 py-2 text-[length:var(--text-sm)] tracking-[var(--tracking-wide)] uppercase transition-colors duration-[var(--duration-fast)] hover:border-[var(--border-active)]"
+            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+          >
+            Enter muted
+          </button>
+        </div>
+      ) : (
+        <p
+          className="text-[length:var(--text-xs)] tracking-[var(--tracking-wide)] uppercase"
+          style={{ color: "var(--text-faint)" }}
+        >
+          any key to skip
+        </p>
+      )}
     </div>
   );
 }

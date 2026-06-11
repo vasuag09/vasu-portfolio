@@ -68,7 +68,7 @@ function SectionHeading({ children }: { children: string }) {
 
 export function CaseStudyPanel() {
   const { selectedProjectId } = useGraphState();
-  const panelRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
 
@@ -133,7 +133,8 @@ export function CaseStudyPanel() {
           background: "oklch(8% 0.02 250 / 0.65)",
         }}
       />
-      <aside
+      {/* div, not aside: ARIA-in-HTML forbids role="dialog" on aside (axe). */}
+      <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
@@ -340,7 +341,7 @@ export function CaseStudyPanel() {
           </p>
         ) : null}
         </div>
-      </aside>
+      </div>
     </>
   );
 }

@@ -32,6 +32,12 @@ html[data-boot="play"] .boot-overlay[data-fading] {
   pointer-events: none;
 }
 
+/* Hydration reached the component (Phase 7): it may hold the overlay open
+   for the SoundGate, so the dead-JS failsafe must stand down. */
+html[data-boot="play"] .boot-overlay[data-hydrated] {
+  animation: none;
+}
+
 @keyframes boot-failsafe {
   to {
     opacity: 0;

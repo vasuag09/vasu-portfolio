@@ -1,4 +1,6 @@
 import { BootSequence } from "@/components/boot/BootSequence";
+import { SoundController } from "@/components/sound/SoundController";
+import { SoundToggle } from "@/components/sound/SoundToggle";
 import { CustomCursor } from "@/components/cursor/CustomCursor";
 import { CanvasRoot } from "@/components/canvas/CanvasRoot";
 import { SmoothScroll } from "@/components/scroll/SmoothScroll";
@@ -20,6 +22,8 @@ export default function Home() {
   return (
     <>
       <BootSequence />
+      <SoundController />
+      <SoundToggle />
       <CustomCursor />
       <SmoothScroll />
       <CanvasRoot />

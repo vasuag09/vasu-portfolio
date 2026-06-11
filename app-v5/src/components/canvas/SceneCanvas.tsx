@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { CameraRig } from "./CameraRig";
 import { NeuralNetwork } from "./NeuralNetwork";
+import { SynapseNode } from "./SynapseNode";
 import { Particles } from "./Particles";
 import { Effects } from "./Effects";
 import { DebugSpline } from "./DebugSpline";
@@ -57,6 +58,7 @@ export default function SceneCanvas() {
       <color attach="background" args={[SCENE_COLORS.background]} />
       <CameraRig />
       <NeuralNetwork />
+      <SynapseNode />
       <Particles count={tier.particleCount} />
       {/* Mount Effects ONLY when the tier wants bloom — its prioritized
           useFrame takes over rendering entirely (see Effects.tsx). */}

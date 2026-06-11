@@ -5,6 +5,8 @@ import { Section } from "@/components/layout/Section";
 import { SkillsOverlay } from "@/components/graph/SkillsOverlay";
 import { ProjectList } from "@/components/graph/ProjectList";
 import { CaseStudyPanel } from "@/components/graph/CaseStudyPanel";
+import { SynapseTerminal } from "@/components/synapse/SynapseTerminal";
+import { SynapseTrigger } from "@/components/synapse/SynapseTrigger";
 
 /**
  * Five real-DOM chapters over the fixed canvas. The skills and projects
@@ -19,6 +21,7 @@ export default function Home() {
       <CanvasRoot />
       <ChapterNav />
       <CaseStudyPanel />
+      <SynapseTerminal />
 
       <main className="relative" style={{ zIndex: "var(--z-content)" }}>
         <Section id="hero" label="Neural Core" heightSvh={220}>
@@ -35,6 +38,9 @@ export default function Home() {
             AI Developer. Building production LLM systems and agentic AI — from
             campus chatbots to WhatsApp-native B2B commerce.
           </p>
+          <div className="mt-8">
+            <SynapseTrigger />
+          </div>
         </Section>
 
         <Section id="projects" label="Projects" heightSvh={280}>
@@ -99,6 +105,9 @@ export default function Home() {
               vasuag09
             </a>
           </p>
+          <div className="mt-6">
+            <SynapseTrigger />
+          </div>
         </Section>
       </main>
     </>

@@ -15,6 +15,8 @@ export interface GraphUIState {
   hoveredProjectId: string | null;
   selectedSkillId: string | null;
   selectedProjectId: string | null;
+  /** Synapse terminal open — the scene node glows while true (Phase 6). */
+  synapseOpen: boolean;
 }
 
 let state: GraphUIState = {
@@ -22,6 +24,7 @@ let state: GraphUIState = {
   hoveredProjectId: null,
   selectedSkillId: null,
   selectedProjectId: null,
+  synapseOpen: false,
 };
 
 const listeners = new Set<() => void>();

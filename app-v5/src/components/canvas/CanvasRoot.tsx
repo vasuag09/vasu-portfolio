@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { CanvasErrorBoundary } from "./CanvasErrorBoundary";
 
 /**
  * ADR-4 mount: fullscreen fixed, behind the DOM (z -1), inert to pointers and
@@ -21,7 +22,9 @@ export function CanvasRoot() {
       style={{ zIndex: "var(--z-canvas)", pointerEvents: "none" }}
       aria-hidden="true"
     >
-      <SceneCanvas />
+      <CanvasErrorBoundary>
+        <SceneCanvas />
+      </CanvasErrorBoundary>
     </div>
   );
 }

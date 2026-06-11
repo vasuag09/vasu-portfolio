@@ -26,3 +26,8 @@ dist-ssr
 
 # Sensitive files
 github-recovery-codes.txt
+.vercel
+
+# Veo source downloads (reference material — encoded versions live in
+# app-v5/public/veo/; originals stay local per VEO-BRIEF.md)
+/*.mp4

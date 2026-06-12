@@ -11,6 +11,7 @@ import { getActiveIds, getGraphState } from "@/lib/graph-store";
 import { buildActivationSet } from "@/lib/graph-adjacency";
 import { createNodeMaterial } from "./materials/node-material";
 import { createConnectionMaterial } from "./materials/connection-material";
+import { curveSegmentPoints, edgeLengthFade } from "@/lib/scene-elevation";
 import type { Vec3 } from "@/data/types";
 
 /**
@@ -55,7 +56,8 @@ function buildNodeInstances(): {
     indexById.set(n.id, instances.length);
     instances.push({
       position: n.position,
-      scale: n.scale * 0.32,
+      // Tier hierarchy (audit P1.4): flagships read ≥2x the archive nodes.
+      scale: n.scale * (n.flagship ? 0.52 : 0.24),
       color: n.flagship ? SCENE_COLORS.nodeFlagship : SCENE_COLORS.nodeProject,
       intensity: n.flagship ? 2.2 : 0.9,
     });
@@ -64,7 +66,7 @@ function buildNodeInstances(): {
     indexById.set(s.id, instances.length);
     instances.push({
       position: s.position,
-      scale: 0.22,
+      scale: s.category === "genai" ? 0.26 : 0.19,
       color: CATEGORY_HEX[s.category],
       intensity: s.category === "genai" ? 1.6 : 0.85,
     });
@@ -108,47 +110,122 @@ interface SegmentSpec {
   toColor: string;
 }
 
-/** Data edges FIRST: segment index i < edges.length ⇔ edges[i] (activation). */
-function buildSegments(): SegmentSpec[] {
+/**
+ * Edge geometry, elevated (audit P1.5): data edges render as CURVED
+ * polylines whose idle opacity fades with length (edgeLengthFade) — long
+ * cross-section spans become a whisper until hover activation restores
+ * them. Data edges come FIRST and expose per-edge vertex ranges so the
+ * Phase-3 activation mapping (edges[i] ⇔ range i) survives subdivision.
+ */
+const CURVE_STEPS = 10;
+
+interface BuiltEdgeGeometry {
+  positions: Float32Array;
+  progress: Float32Array;
+  colors: Float32Array;
+  lenFade: Float32Array;
+  vertexCount: number;
+  /** Per data-edge [startVertex, vertexCount] for activation writes. */
+  dataEdgeRanges: [number, number][];
+}
+
+function buildEdgeGeometry(): BuiltEdgeGeometry {
   const projectById = new Map(projectNodes.map((n) => [n.id, n]));
   const skillById = new Map(skills.map((s) => [s.id, s]));
 
-  const dataEdges: SegmentSpec[] = edges.map((edge) => {
+  const positions: number[] = [];
+  const progress: number[] = [];
+  const colors: number[] = [];
+  const lenFade: number[] = [];
+  const dataEdgeRanges: [number, number][] = [];
+  const colorA = new THREE.Color();
+  const colorB = new THREE.Color();
+  const mixed = new THREE.Color();
+
+  const edgeLength = (a: Vec3, b: Vec3) =>
+    Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+
+  const addPolyline = (spec: SegmentSpec, steps: number, track: boolean) => {
+    const start = positions.length / 3;
+    const fade = edgeLengthFade(edgeLength(spec.from, spec.to));
+    const pts =
+      steps > 1
+        ? curveSegmentPoints(spec.from, spec.to, steps)
+        : [spec.from, spec.to];
+    colorA.set(spec.fromColor);
+    colorB.set(spec.toColor);
+    for (let s = 0; s < pts.length - 1; s += 1) {
+      for (const k of [s, s + 1]) {
+        const t = k / (pts.length - 1);
+        positions.push(pts[k][0], pts[k][1], pts[k][2]);
+        progress.push(t);
+        mixed.copy(colorA).lerp(colorB, t);
+        colors.push(mixed.r, mixed.g, mixed.b);
+        lenFade.push(fade);
+      }
+    }
+    if (track) dataEdgeRanges.push([start, positions.length / 3 - start]);
+  };
+
+  edges.forEach((edge) => {
     const skill = skillById.get(edge.skillId);
     const project = projectById.get(edge.projectId);
     if (!skill || !project) {
       throw new Error(`Dangling edge ${edge.skillId}→${edge.projectId}`);
     }
-    return {
-      from: skill.position,
-      to: project.position,
-      fromColor: CATEGORY_HEX[skill.category],
-      toColor: project.flagship
-        ? SCENE_COLORS.nodeFlagship
-        : SCENE_COLORS.nodeProject,
-    };
+    addPolyline(
+      {
+        from: skill.position,
+        to: project.position,
+        fromColor: CATEGORY_HEX[skill.category],
+        toColor: project.flagship
+          ? SCENE_COLORS.nodeFlagship
+          : SCENE_COLORS.nodeProject,
+      },
+      CURVE_STEPS,
+      true,
+    );
   });
 
-  const projectLinks: SegmentSpec[] = nearestNeighborPairs(
+  nearestNeighborPairs(
     projectNodes.map((n) => n.position),
     2,
-  ).map(([i, j]) => ({
-    from: projectNodes[i].position,
-    to: projectNodes[j].position,
-    fromColor: SCENE_COLORS.nodeProject,
-    toColor: SCENE_COLORS.nodeProject,
-  }));
-  const skillLinks: SegmentSpec[] = nearestNeighborPairs(
+  ).forEach(([i, j]) =>
+    addPolyline(
+      {
+        from: projectNodes[i].position,
+        to: projectNodes[j].position,
+        fromColor: SCENE_COLORS.nodeProject,
+        toColor: SCENE_COLORS.nodeProject,
+      },
+      1,
+      false,
+    ),
+  );
+  nearestNeighborPairs(
     skills.map((s) => s.position),
     2,
-  ).map(([i, j]) => ({
-    from: skills[i].position,
-    to: skills[j].position,
-    fromColor: CATEGORY_HEX[skills[i].category],
-    toColor: CATEGORY_HEX[skills[j].category],
-  }));
+  ).forEach(([i, j]) =>
+    addPolyline(
+      {
+        from: skills[i].position,
+        to: skills[j].position,
+        fromColor: CATEGORY_HEX[skills[i].category],
+        toColor: CATEGORY_HEX[skills[j].category],
+      },
+      1,
+      false,
+    ),
+  );
 
-  return [...dataEdges, ...projectLinks, ...skillLinks];
+  return {
+    positions: new Float32Array(positions),
+    progress: new Float32Array(progress),
+    colors: new Float32Array(colors),
+    lenFade: new Float32Array(lenFade),
+    vertexCount: positions.length / 3,
+    dataEdgeRanges,
+  };
 }
 
 export function NeuralNetwork() {
@@ -186,36 +263,38 @@ export function NeuralNetwork() {
     return { nodeGeometry: geometry, instances, indexById };
   }, []);
 
-  const { connectionGeometry, segmentCount } = useMemo(() => {
-    const segments = buildSegments();
-    const positions = new Float32Array(segments.length * 6);
-    const progress = new Float32Array(segments.length * 2);
-    const colors = new Float32Array(segments.length * 6);
-    const color = new THREE.Color();
-    segments.forEach((seg, i) => {
-      positions.set([...seg.from, ...seg.to], i * 6);
-      progress.set([0, 1], i * 2);
-      color.set(seg.fromColor);
-      colors.set([color.r, color.g, color.b], i * 6);
-      color.set(seg.toColor);
-      colors.set([color.r, color.g, color.b], i * 6 + 3);
-    });
+  const { connectionGeometry, edgeVertexCount, dataEdgeRanges } = useMemo(() => {
+    const built = buildEdgeGeometry();
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("aProgress", new THREE.BufferAttribute(progress, 1));
-    geometry.setAttribute("aColor", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(built.positions, 3),
+    );
+    geometry.setAttribute(
+      "aProgress",
+      new THREE.BufferAttribute(built.progress, 1),
+    );
+    geometry.setAttribute("aColor", new THREE.BufferAttribute(built.colors, 3));
+    geometry.setAttribute(
+      "aLenFade",
+      new THREE.BufferAttribute(built.lenFade, 1),
+    );
     geometry.setAttribute(
       "aActive",
-      new THREE.BufferAttribute(new Float32Array(segments.length * 2), 1),
+      new THREE.BufferAttribute(new Float32Array(built.vertexCount), 1),
     );
-    return { connectionGeometry: geometry, segmentCount: segments.length };
+    return {
+      connectionGeometry: geometry,
+      edgeVertexCount: built.vertexCount,
+      dataEdgeRanges: built.dataEdgeRanges,
+    };
   }, []);
 
   // Activation targets, rebuilt only when the hovered/selected ids change.
   const activationRef = useRef({
     key: "",
     nodeTargets: new Float32Array(instances.length),
-    edgeTargets: new Float32Array(segmentCount * 2),
+    edgeTargets: new Float32Array(edgeVertexCount),
   });
 
   // Write instance matrices once (positions are static this phase).
@@ -261,8 +340,9 @@ export function NeuralNetwork() {
         if (index !== undefined) activation.nodeTargets[index] = 1;
       });
       set.edgeIndices.forEach((i) => {
-        activation.edgeTargets[i * 2] = 1;
-        activation.edgeTargets[i * 2 + 1] = 1;
+        const range = dataEdgeRanges[i];
+        if (!range) return;
+        activation.edgeTargets.fill(1, range[0], range[0] + range[1]);
       });
     }
 

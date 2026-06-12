@@ -74,6 +74,33 @@ body {
   user-select: none;
 }
 
+/* Graph node labels (ADR-8): real DOM over the canvas, projected by drei
+   Html. The canvas container is aria-hidden + pointer-events:none — labels
+   inherit both. Opacity is driven per-frame by camera distance. */
+.graph-label-wrap {
+  pointer-events: none !important;
+}
+
+.graph-label {
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  text-shadow: 0 0 10px oklch(8% 0.02 250);
+  /* Clear the sphere tops — labels float above their node, not on it. */
+  transform: translateY(-2.6em);
+}
+
+.graph-label--project {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.graph-label--skill {
+  color: var(--text-muted);
+}
+
 /* Primary CTA pulse (SynapseTrigger) — killed by reduced-motion.css. */
 @keyframes cta-pulse {
   0%,

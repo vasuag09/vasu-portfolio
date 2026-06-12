@@ -3,9 +3,11 @@ import * as THREE from "three";
 /**
  * Connection flow material — ported from v4
  * (src/components/canvas/shaders/connectionMaterial.js), upgraded with
- * per-vertex color (skill-category → project color gradient) and per-vertex
- * activation (Phase 3): hovered skill/project edges brighten, flow faster,
- * and cross the bloom threshold.
+ * per-vertex color (skill-category → project color gradient), per-vertex
+ * activation (Phase 3), and the design-elevation line art direction:
+ * idle opacity scales with aLenFade (long cross-section edges whisper
+ * until activated) and fades with camera depth, so no edge ever reads as
+ * a full-frame streak.
  */
 export function createConnectionMaterial(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
@@ -21,14 +23,20 @@ export function createConnectionMaterial(): THREE.ShaderMaterial {
       attribute float aProgress;
       attribute vec3 aColor;
       attribute float aActive;
+      attribute float aLenFade;
       varying float vProgress;
       varying vec3 vColor;
       varying float vActive;
+      varying float vLenFade;
+      varying float vViewZ;
       void main() {
         vProgress = aProgress;
         vColor = aColor;
         vActive = aActive;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vLenFade = aLenFade;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vViewZ = -mvPosition.z;
+        gl_Position = projectionMatrix * mvPosition;
       }
     `,
     fragmentShader: /* glsl */ `
@@ -38,6 +46,8 @@ export function createConnectionMaterial(): THREE.ShaderMaterial {
       varying float vProgress;
       varying vec3 vColor;
       varying float vActive;
+      varying float vLenFade;
+      varying float vViewZ;
 
       void main() {
         // Animated energy pulse traveling along the connection (v4 heritage);
@@ -52,6 +62,11 @@ export function createConnectionMaterial(): THREE.ShaderMaterial {
         // Soft endpoints
         float edgeFade = smoothstep(0.0, 0.08, vProgress) * smoothstep(1.0, 0.92, vProgress);
         alpha *= edgeFade;
+
+        // Length fade: long edges idle near-invisible; activation restores.
+        alpha *= mix(vLenFade, 1.0, clamp(vActive, 0.0, 1.0));
+        // Depth fade: edges dissolve with distance instead of streaking.
+        alpha *= smoothstep(70.0, 22.0, vViewZ);
 
         // Active edges go HDR so the connection itself blooms.
         vec3 color = vColor * (1.0 + vActive * 1.8);

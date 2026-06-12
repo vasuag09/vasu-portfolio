@@ -5,6 +5,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { mulberry32 } from "@/lib/seeded-random";
 import { SCENE_COLORS } from "@/lib/scene-colors";
+import { sections } from "@/data/sections-v5";
+import { scrollState } from "@/lib/scroll-state";
 
 /**
  * GPU curl-noise particle field (AWARD-RESEARCH §5 quality bar).
@@ -35,6 +37,9 @@ const vertexShader = /* glsl */ `
   uniform float uPixelRatio;
   uniform vec3 uCenter;
   uniform vec3 uHalfExtents;
+  // ADR-7 per-chapter identity: section cores + scroll progress.
+  uniform vec3 uChapterCenters[5];
+  uniform float uScrollProgress;
   varying float vEnvelope;
   varying float vIntensity;
 
@@ -115,20 +120,47 @@ const vertexShader = /* glsl */ `
     float cycle = floor(uTime / LIFETIME + dot(aSeed, vec3(7.31, 3.17, 9.73)));
     vec3 cellSeed = fract(aSeed + vec3(cycle * 0.6180339887));
 
-    vec3 spawn = uCenter + (cellSeed * 2.0 - 1.0) * uHalfExtents;
+    // ADR-7 spawn bias: 55% of respawns cluster around a chapter core
+    // (denser toward the center via the shaped radius), the rest stay an
+    // ambient field — chapters get local density without a second system.
+    float pick = fract(dot(cellSeed, vec3(12.9898, 78.233, 37.719)) * 43758.5453);
+    vec3 spawn;
+    if (pick < 0.55) {
+      int chapter = int(min(floor(pick * 9.0909), 4.0)); // 5 buckets over [0,0.55)
+      vec3 dir = cellSeed * 2.0 - 1.0;
+      float shaped = pow(fract(pick * 17.0 + cellSeed.y), 1.45);
+      float radius = 2.2 + shaped * 7.0;
+      spawn = uChapterCenters[chapter] + dir * vec3(radius, radius * 0.55, radius * 0.8);
+    } else {
+      spawn = uCenter + (cellSeed * 2.0 - 1.0) * uHalfExtents;
+    }
+
+    // Active-chapter focus: interpolate the camera's subject core from
+    // scroll progress; particles near it calm down, brighten, and grow —
+    // order out of chaos around whatever the visitor is reading.
+    float seg = clamp(uScrollProgress, 0.0, 1.0) * 4.0;
+    int segLo = int(floor(seg));
+    int segHi = int(min(floor(seg) + 1.0, 4.0));
+    vec3 activeCenter = mix(uChapterCenters[segLo], uChapterCenters[segHi], fract(seg));
+    float dActive = distance(spawn, activeCenter);
+    float prox = exp(-dActive * dActive * 0.012);
 
     // Curl flow: slow field evolution + per-particle travel over its life.
+    // Proximity damps the turbulence (calm near the subject).
     vec3 flow = curlNoise(spawn * 0.06 + uTime * 0.015);
-    vec3 displaced = spawn + flow * phase * 3.5;
+    vec3 displaced = spawn + flow * phase * 3.5 * mix(1.0, 0.45, prox);
 
     // Fade in 15%, fade out last 15% — zero alpha at the wrap point.
     vEnvelope = smoothstep(0.0, 0.15, phase) * smoothstep(1.0, 0.85, phase);
+    // Brightness lift near the active chapter; dim field stays sub-bloom.
+    vIntensity *= 1.0 + prox * 0.3;
 
     vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
     // Perspective size, clamped so near-camera particles never blow out
     // into screen-filling blobs.
     float dist = max(-mvPosition.z, 4.0);
-    gl_PointSize = min(aSize * uPixelRatio * vEnvelope * (80.0 / dist), 14.0);
+    float sizeBoost = 1.0 + prox * 0.5;
+    gl_PointSize = min(aSize * sizeBoost * uPixelRatio * vEnvelope * (80.0 / dist), 14.0);
     gl_Position = projectionMatrix * mvPosition;
   }
 `;
@@ -192,6 +224,10 @@ export function Particles({ count }: { count: number }) {
         uPixelRatio: { value: 1 },
         uCenter: { value: new THREE.Vector3(...CENTER) },
         uHalfExtents: { value: new THREE.Vector3(...HALF_EXTENTS) },
+        uChapterCenters: {
+          value: sections.map((s) => new THREE.Vector3(...s.cameraTarget)),
+        },
+        uScrollProgress: { value: 0 },
         uBaseColor: { value: new THREE.Color(SCENE_COLORS.particleBase) },
         uSignalColor: { value: new THREE.Color(SCENE_COLORS.accentBright) },
       },
@@ -206,6 +242,7 @@ export function Particles({ count }: { count: number }) {
     const mat = points.material as THREE.ShaderMaterial;
     mat.uniforms.uTime.value = clock.getElapsedTime();
     mat.uniforms.uPixelRatio.value = pixelRatio;
+    mat.uniforms.uScrollProgress.value = scrollState.progress;
   });
 
   return (

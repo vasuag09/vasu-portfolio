@@ -243,3 +243,70 @@ Single layout tree (maintenance win, CLS-safe, identical recruiter path); both a
 
 ## Cross-dependencies
 ADR-4's pointer routing feeds ADR-1's frame-sync tests · ADR-3's anchors feed ADR-4's section mapping and ADR-1's spline · ADR-2's video tier reuses ADR-4's Canvas component · ADR-6's motion guard applies to every animation site-wide · ADR-5 scopes where all of it lives (`app-v5/`).
+
+---
+
+## ADR-7: Per-Chapter Particle Scene Identity (design elevation, 2026-06-12)
+
+### Context
+Audit finding P0.3: the 80k stateless curl-noise field is uniform confetti — every chapter looks identical. Must stay ONE GPU system, one draw call, stateless, 60fps, inherited by the 10k mobile tier.
+
+### Decision
+**Spawn-bias + per-particle proximity modulation.** Build-time spawn distribution re-seeded to cluster density around each chapter's world-space core (`sections[i].cameraTarget`); vertex shader gains `uChapterCenters[5]` + `uScrollProgress` and modulates size/brightness/turbulence by distance-to-nearest-core, weighted toward the active chapter.
+
+### Alternatives & why not
+- Multiple particle systems: 5 draw calls + JS visibility management. Rejected.
+- Morph-to-formation targets: per-particle target attributes + morph math at 80k = cost without atmosphere gain. Rejected.
+
+### Consequences
+Deterministic, SSR-safe, zero new draw calls; density baked at build (anchor moves require re-seed); bloom tuning needed (`uNearbyBrightness` start 1.5 — the threshold-1.0 selective bloom must not wash out).
+
+### Risks
+O(5) loop per vertex is cheap; NaN guards untouched; verify "fine without bloom" after every shader edit.
+
+## ADR-8: Graph Node Labels via DOM Overlay (design elevation, 2026-06-12)
+
+### Context
+Audit finding P1.4: nodes unlabeled/unreadable. ~10–15 labels (flagships + key skills), decorative/duplicative of the DOM lists → `aria-hidden`.
+
+### Decision
+**DOM-overlay labels** projected from world positions (`vector.project(camera)`) each frame into a fixed `pointer-events:none aria-hidden` layer; opacity fades by camera distance; culled when behind camera; skipped entirely on the mobile tier.
+
+### Alternatives & why not
+- drei `<Text>` (troika): ~50kb gz into the scene chunk for decorative text. Rejected.
+- Canvas sprite atlas: shader/material complexity for 15 strings. Rejected.
+
+### Consequences
+Zero bundle cost, crisp at any DPR, real HTML, CSS-styled; costs ~15 projections/frame (throttle if >1ms); transform-only positioning (compositor-safe).
+
+---
+
+## ADR-9: Camera Authority for the Neuron Dive (2026-06-12)
+
+### Context
+CameraRig is the sole camera writer (scroll → spline pose per frame, ADR-1).
+The dive needs the camera at a project node while the panel is open, then back.
+Two-owner designs (rig pauses, tween library takes over) race on rapid
+open/close and on scroll-lock edges.
+
+### Decision
+**Single writer, blended authority.** A `camera-state.ts` module singleton
+(same pattern as scroll-state) holds `diveTarget: CameraPose | null` and
+`diveBlend: 0..1`. CameraRig computes the scroll pose EVERY frame, then lerps
+position/target toward diveTarget by an exponentially-damped diveBlend
+(target 1 while diving, 0 otherwise). Open/close/rapid-toggle are just blend
+retargets — the camera can never be stranded because the scroll pose is
+always live underneath. Deep links set blend=1 before first frame (end state,
+no replay). Dive pose derived per node: camera at node center + offset along
+(restPose→node) direction at radius×k, looking at the node.
+
+### Alternatives & why not
+- GSAP tween of camera + rig pause/resume: two owners, kill/overwrite races,
+  fights ADR-1's "no extra smoothing" rule. Rejected.
+- Extending the spline with a dive segment: per-node spline rebuilds at open
+  time, pollutes scroll mapping. Rejected.
+
+### Consequences
+Dive easing = exp damping (matches activation glow idiom, ~9/s rate);
+panel UI keys off diveBlend threshold; reduced-motion path untouched (no
+canvas). One extra lerp per frame — negligible.

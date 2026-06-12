@@ -7,6 +7,7 @@ import { mulberry32 } from "@/lib/seeded-random";
 import { SCENE_COLORS } from "@/lib/scene-colors";
 import { sections } from "@/data/sections-v5";
 import { scrollState } from "@/lib/scroll-state";
+import { signalUniforms } from "@/lib/signal-uniforms";
 
 /**
  * GPU curl-noise particle field (AWARD-RESEARCH §5 quality bar).
@@ -40,6 +41,11 @@ const vertexShader = /* glsl */ `
   // ADR-7 per-chapter identity: section cores + scroll progress.
   uniform vec3 uChapterCenters[5];
   uniform float uScrollProgress;
+  // Signal pulse + arrival flare (Living Network wave 1).
+  uniform vec3 uPulsePos;
+  uniform float uPulseStrength;
+  uniform vec3 uFirePos;
+  uniform float uFireStrength;
   varying float vEnvelope;
   varying float vIntensity;
 
@@ -155,11 +161,19 @@ const vertexShader = /* glsl */ `
     // Brightness lift near the active chapter; dim field stays sub-bloom.
     vIntensity *= 1.0 + prox * 0.3;
 
+    // Signal pulse: a localized brightening that travels the spline ahead
+    // of scroll; arrival flare: a wider ripple around the fired core.
+    float dPulse = distance(displaced, uPulsePos);
+    float pulse = exp(-dPulse * dPulse * 0.08) * uPulseStrength;
+    float dFire = distance(spawn, uFirePos);
+    float fire = exp(-dFire * dFire * 0.03) * uFireStrength;
+    vIntensity *= 1.0 + pulse * 1.1 + fire * 1.4;
+
     vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
     // Perspective size, clamped so near-camera particles never blow out
     // into screen-filling blobs.
     float dist = max(-mvPosition.z, 4.0);
-    float sizeBoost = 1.0 + prox * 0.5;
+    float sizeBoost = 1.0 + prox * 0.5 + pulse * 0.7 + fire * 0.5;
     gl_PointSize = min(aSize * sizeBoost * uPixelRatio * vEnvelope * (80.0 / dist), 14.0);
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -228,6 +242,8 @@ export function Particles({ count }: { count: number }) {
           value: sections.map((s) => new THREE.Vector3(...s.cameraTarget)),
         },
         uScrollProgress: { value: 0 },
+        // Shared by reference — SignalDriver writes, both materials read.
+        ...signalUniforms,
         uBaseColor: { value: new THREE.Color(SCENE_COLORS.particleBase) },
         uSignalColor: { value: new THREE.Color(SCENE_COLORS.accentBright) },
       },

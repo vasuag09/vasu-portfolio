@@ -8,7 +8,7 @@ import { setGraphState } from "@/lib/graph-store";
 import { afterNextPaint } from "@/lib/after-paint";
 import { useGraphState } from "@/hooks/useGraphState";
 import { useScrollLock } from "@/hooks/useScrollLock";
-import { scrollToSection, isSectionInView } from "@/lib/scroll-to-section";
+import { startDive, endDive } from "@/lib/camera-state";
 import { VeoClip } from "@/components/media/VeoClip";
 import { veoSources, veoPoster } from "@/lib/veo-sources";
 import { Reveal } from "@/components/ui/Reveal";
@@ -76,15 +76,18 @@ export function CaseStudyPanel() {
   // wheel over the panel would move the document, not the case study).
   useScrollLock(Boolean(selectedProjectId));
 
-  // Deep link in: ?project=nm-gpt opens the panel on load.
+  // Deep link in: ?project=nm-gpt opens the panel on load — at the END
+  // state (camera already inside the node, no flight replay — spec).
+  const instantDiveRef = useRef(false);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("project");
     if (requested && KNOWN_IDS.has(requested)) {
+      instantDiveRef.current = true;
       setGraphState({ selectedProjectId: requested });
     }
   }, []);
 
-  // URL + focus + camera alignment + panel scroll reset on open/switch.
+  // URL + focus + neuron dive + panel scroll reset on open/switch.
   useEffect(() => {
     syncUrl(selectedProjectId);
     if (selectedProjectId) {
@@ -93,13 +96,13 @@ export function CaseStudyPanel() {
       }
       panelRef.current?.focus();
       scrollRef.current?.scrollTo({ top: 0 });
-      // Camera rest-pose alignment: the glowing node lives in the projects
-      // region — fly there so the scene context matches the case study.
-      // force: the scroll lock has stopped Lenis; the flight still runs.
-      if (!isSectionInView("projects")) {
-        scrollToSection("projects", false, { force: true });
-      }
+      // Neuron dive (ADR-9): fly INTO the node; the panel fades in as the
+      // camera arrives. The page itself never moves (scroll lock holds) —
+      // on close the camera blends back to wherever the visitor was.
+      startDive(selectedProjectId, instantDiveRef.current);
+      instantDiveRef.current = false;
     } else {
+      endDive();
       restoreFocusRef.current?.focus();
       restoreFocusRef.current = null;
     }
@@ -127,7 +130,7 @@ export function CaseStudyPanel() {
       <div
         role="presentation"
         onClick={closeCaseStudy}
-        className="fixed inset-0"
+        className="backdrop-dive-in fixed inset-0"
         style={{
           zIndex: "var(--z-overlay)",
           background: "oklch(8% 0.02 250 / 0.65)",
@@ -140,7 +143,7 @@ export function CaseStudyPanel() {
         aria-modal="true"
         aria-label={`${project.title} case study`}
         tabIndex={-1}
-        className="fixed inset-y-0 right-0 w-full max-w-xl border-l outline-none"
+        className="panel-dive-in fixed inset-y-0 right-0 w-full max-w-xl border-l outline-none"
         style={{
           zIndex: "var(--z-overlay)",
           background: "var(--bg-elevated)",

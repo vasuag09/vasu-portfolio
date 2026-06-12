@@ -101,6 +101,30 @@ body {
   color: var(--text-muted);
 }
 
+/* Neuron dive (ADR-9): the panel arrives WITH the camera — content fades
+   in as the flight settles (~200ms in). Compositor-only; reduced-motion
+   CSS backstop kills both animations → instant appearance. */
+.panel-dive-in {
+  animation: panel-dive 360ms var(--ease-out-expo) 180ms both;
+}
+
+.backdrop-dive-in {
+  animation: backdrop-dive 300ms linear both;
+}
+
+@keyframes panel-dive {
+  from {
+    opacity: 0;
+    transform: translateX(2.5rem);
+  }
+}
+
+@keyframes backdrop-dive {
+  from {
+    opacity: 0;
+  }
+}
+
 /* Primary CTA pulse (SynapseTrigger) — killed by reduced-motion.css. */
 @keyframes cta-pulse {
   0%,

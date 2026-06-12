@@ -5,6 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { CameraRig } from "./CameraRig";
 import { NeuralNetwork } from "./NeuralNetwork";
 import { NodeLabels } from "./NodeLabels";
+import { SignalDriver } from "./SignalDriver";
 import { SynapseNode } from "./SynapseNode";
 import { Particles } from "./Particles";
 import { Effects } from "./Effects";
@@ -62,6 +63,7 @@ export default function SceneCanvas() {
           the budget (p95 9.2ms measured). */}
       <color attach="background" args={[SCENE_COLORS.background]} />
       <CameraRig />
+      <SignalDriver />
       <NeuralNetwork />
       {/* ADR-8 labels: desktop tier only (small screens have no room). */}
       {tier.name === "desktop" ? <NodeLabels /> : null}

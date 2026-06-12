@@ -72,6 +72,18 @@ class SoundEngine {
     this.sweep(330, 660, 0.18, 0.25);
   }
 
+  /**
+   * Chapter-arrival chord (Signal Pulse): one soft pentatonic root per
+   * chapter plus its octave shimmer — each region of the network has a
+   * pitch identity. No-op while sound is off (blip guards).
+   */
+  playArrival(chapter: number): void {
+    const roots = [262, 294, 330, 392, 440]; // C D E G A
+    const freq = roots[Math.max(0, Math.min(roots.length - 1, chapter))];
+    this.blip(freq, 0.35, 0, "sine", 0.16);
+    this.blip(freq * 2, 0.5, 0.06, "sine", 0.07);
+  }
+
   playClose(): void {
     this.sweep(660, 330, 0.15, 0.2);
   }

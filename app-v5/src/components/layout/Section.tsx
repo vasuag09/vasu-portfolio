@@ -38,6 +38,7 @@ export function Section({
       id={id}
       data-chapter={id}
       data-chapter-label={label}
+      data-align={align}
       aria-labelledby={headingId}
       className={`relative flex ${align === "start" ? "items-start" : "items-center"}`}
       style={{

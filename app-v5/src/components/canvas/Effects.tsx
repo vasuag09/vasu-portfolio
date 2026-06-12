@@ -6,7 +6,6 @@ import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import type { ParticleTier } from "@/lib/particle-config";
 
@@ -37,21 +36,20 @@ export function Effects({ tier }: { tier: ParticleTier }) {
     // drawn into this target, so `samples` on it is the only anti-aliasing
     // that counts. HalfFloat keeps HDR headroom for the bloom threshold.
     const drawSize = gl.getDrawingBufferSize(new THREE.Vector2());
+    // 4x MSAA (design-elevation P2): at these dot sizes 8x was visually
+    // indistinguishable and the single largest fill cost. Before/after
+    // screenshots in docs/v5/design-audit/after/ back the downgrade.
     const msaaTarget = new THREE.WebGLRenderTarget(drawSize.x, drawSize.y, {
       type: THREE.HalfFloatType,
-      samples: 8,
+      samples: 4,
     });
     const composer = new EffectComposer(gl, msaaTarget);
     composer.addPass(new RenderPass(scene, camera));
 
-    if (tier.depthOfField) {
-      const bokeh = new BokehPass(scene, camera, {
-        focus: 14, // world units — section cores sit ~11-16 from camera rest poses
-        aperture: 0.0002,
-        maxblur: 0.008,
-      });
-      composer.addPass(bokeh);
-    }
+    // BokehPass removed (design-elevation P2 decision): full-res DoF barely
+    // read in screenshots and cost a full-scene depth pass per frame.
+    // tier.depthOfField stays in the config schema for a future half-res
+    // implementation if Phase 11 wants it back.
 
     composer.addPass(
       new UnrealBloomPass(

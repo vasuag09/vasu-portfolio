@@ -56,6 +56,10 @@ export default function SceneCanvas() {
         }
       }}
     >
+      {/* Adaptive scroll-DPR was tried and REMOVED: each setDpr resize
+          reallocates the composer target (~175ms spike) — costlier than
+          the frames it saved. MSAA 4x + DPR 1.75 + no Bokeh already hold
+          the budget (p95 9.2ms measured). */}
       <color attach="background" args={[SCENE_COLORS.background]} />
       <CameraRig />
       <NeuralNetwork />

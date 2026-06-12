@@ -45,3 +45,35 @@ html[data-boot="play"] .boot-overlay[data-hydrated] {
     pointer-events: none;
   }
 }
+
+/* Converging glyph burst — glyphs fly from a ring INTO the name while the
+   scramble resolves. Compositor-only (transform + opacity). */
+.boot-burst {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.boot-burst-glyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: var(--text-sm);
+  color: var(--accent);
+  opacity: 0;
+  animation: boot-converge 620ms var(--ease-out-expo) both;
+  will-change: transform;
+}
+
+@keyframes boot-converge {
+  0% {
+    opacity: 0.9;
+    transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by)))
+      scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.25);
+  }
+}

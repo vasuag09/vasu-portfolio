@@ -27,8 +27,11 @@ const TIERS: Record<TierName, ParticleTier> = {
     name: "desktop",
     particleCount: 80_000,
     bloom: true,
-    depthOfField: true,
-    maxDpr: 2,
+    // Disabled in the design-elevation perf pass: full-res Bokeh barely
+    // read visually. Schema kept for a future half-res variant.
+    depthOfField: false,
+    // 1.75 (was 2): ~23% fewer fragments, invisible on a particle field.
+    maxDpr: 1.75,
   },
   mobile: {
     name: "mobile",

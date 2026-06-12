@@ -23,13 +23,16 @@ const lowEnd: DeviceCaps = {
 };
 
 describe("resolveParticleTier (ADR-2 tiers)", () => {
-  it("desktop gets the full experience: 60–100k particles, bloom + DoF", () => {
+  it("desktop gets the full experience: 60–100k particles, bloom, DPR ≤1.75", () => {
     const tier = resolveParticleTier(desktop);
     expect(tier.name).toBe("desktop");
     expect(tier.particleCount).toBeGreaterThanOrEqual(60_000);
     expect(tier.particleCount).toBeLessThanOrEqual(100_000);
     expect(tier.bloom).toBe(true);
-    expect(tier.depthOfField).toBe(true);
+    // Design-elevation P2: full-res Bokeh removed (barely read visually);
+    // DPR capped at 1.75. Schema keeps the flag for a half-res future.
+    expect(tier.depthOfField).toBe(false);
+    expect(tier.maxDpr).toBeLessThanOrEqual(1.75);
   });
 
   it("modern mobile gets the live tier: ~10k particles, bloom only", () => {

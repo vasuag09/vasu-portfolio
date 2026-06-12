@@ -6,6 +6,7 @@ import {
   BOOT_STORAGE_KEY,
   BOOT_TIMELINE,
   bootPhaseAt,
+  randomGlyph,
   scrambleText,
 } from "@/lib/boot-state";
 import { shouldShowSoundGate } from "@/lib/sound-state";
@@ -22,6 +23,34 @@ const NAME = "VASU AGRAWAL";
 const INITIAL_FRAME = scrambleText(NAME, 0, () => "█");
 
 type Stage = "gate" | "anim" | "done";
+
+interface BurstGlyph {
+  char: string;
+  x: number; // start offset, px
+  y: number;
+  delay: number; // ms
+}
+
+/**
+ * Converging glyph burst (design elevation P1.9): ~26 glyphs fly from a
+ * ring into the name as the scramble resolves. Generated client-side only
+ * when the anim stage starts (never part of SSR HTML), compositor-only
+ * keyframes, finishes inside the scramble window.
+ */
+function makeBurst(): BurstGlyph[] {
+  const glyphs: BurstGlyph[] = [];
+  for (let i = 0; i < 26; i += 1) {
+    const angle = (i / 26) * Math.PI * 2 + Math.random() * 0.4;
+    const radius = 180 + Math.random() * 240;
+    glyphs.push({
+      char: randomGlyph(),
+      x: Math.round(Math.cos(angle) * radius * 1.6),
+      y: Math.round(Math.sin(angle) * radius),
+      delay: Math.round(Math.random() * 380),
+    });
+  }
+  return glyphs;
+}
 
 /**
  * Boot ritual (Phase 10) + SoundGate (Phase 7, PLAN Q4). First visit:
@@ -165,13 +194,34 @@ export function BootSequence() {
       >
         Neural core · online
       </p>
-      <span
-        ref={nameRef}
-        aria-hidden="true"
-        className="font-bold leading-[var(--leading-tight)]"
-        style={{ fontSize: "var(--text-xl)" }}
-      >
-        {INITIAL_FRAME}
+      <span className="relative inline-block">
+        {stage === "anim" ? (
+          <span aria-hidden="true" className="boot-burst">
+            {makeBurst().map((g, i) => (
+              <span
+                key={i}
+                className="boot-burst-glyph"
+                style={
+                  {
+                    "--bx": `${g.x}px`,
+                    "--by": `${g.y}px`,
+                    animationDelay: `${g.delay}ms`,
+                  } as React.CSSProperties
+                }
+              >
+                {g.char}
+              </span>
+            ))}
+          </span>
+        ) : null}
+        <span
+          ref={nameRef}
+          aria-hidden="true"
+          className="font-bold leading-[var(--leading-tight)]"
+          style={{ fontSize: "var(--text-xl)" }}
+        >
+          {INITIAL_FRAME}
+        </span>
       </span>
       {gating ? (
         <div className="mt-2 flex items-center gap-4">

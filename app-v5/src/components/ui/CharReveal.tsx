@@ -32,7 +32,10 @@ export function CharReveal({ text, stagger = 26, className }: CharRevealProps) {
 
   let charIndex = 0;
   return (
-    <span aria-label={text} className={className}>
+    // aria-label is prohibited on a generic span (axe: aria-prohibited-attr)
+    // — screen readers get the intact text via sr-only instead.
+    <span className={className}>
+      <span className="sr-only">{text}</span>
       {text.split(" ").map((word, w) => (
         <span key={w} aria-hidden="true" className="inline-block whitespace-nowrap">
           {word.split("").map((char, c) => {

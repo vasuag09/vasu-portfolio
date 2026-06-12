@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BOOT_COMPLETE_EVENT,
   BOOT_STORAGE_KEY,
@@ -62,6 +62,8 @@ function makeBurst(): BurstGlyph[] {
  */
 export function BootSequence() {
   const [stage, setStage] = useState<Stage | null>(null);
+  // One burst per anim entry — render must stay pure (review finding).
+  const burst = useMemo(() => (stage === "anim" ? makeBurst() : []), [stage]);
   const overlayRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLSpanElement>(null);
   const primaryRef = useRef<HTMLButtonElement>(null);
@@ -197,7 +199,7 @@ export function BootSequence() {
       <span className="relative inline-block">
         {stage === "anim" ? (
           <span aria-hidden="true" className="boot-burst">
-            {makeBurst().map((g, i) => (
+            {burst.map((g, i) => (
               <span
                 key={i}
                 className="boot-burst-glyph"

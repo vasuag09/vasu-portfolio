@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { projects } from "@/data/projects-v5";
 import { setGraphState } from "@/lib/graph-store";
 import { useGraphState } from "@/hooks/useGraphState";
@@ -21,7 +21,9 @@ const flagships = projects.filter((p) => p.tier === "flagship");
 function VeoTeaser({ clip, active }: { clip: string; active: boolean }) {
   // Mount the <video> only after the first hover — zero cost until then.
   const [wanted, setWanted] = useState(false);
-  if (active && !wanted) setWanted(true);
+  useEffect(() => {
+    if (active) setWanted(true);
+  }, [active]);
 
   return (
     <span

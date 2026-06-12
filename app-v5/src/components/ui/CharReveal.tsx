@@ -43,7 +43,7 @@ export function CharReveal({ text, stagger = 26, className }: CharRevealProps) {
             charIndex += 1;
             return (
               <span
-                key={c}
+                key={`${w}-${c}`}
                 className={play ? "char-reveal-in" : "inline-block"}
                 style={play ? { animationDelay: `${delay}ms` } : undefined}
               >

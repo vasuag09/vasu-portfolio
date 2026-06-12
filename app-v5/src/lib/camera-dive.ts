@@ -21,7 +21,9 @@ export function deriveDivePose(
   const node = new THREE.Vector3(...nodePosition);
   const back = restPose.position.clone().sub(node);
   if (back.lengthSq() < 1e-6) {
-    // Degenerate: rest pose at the node — back off along +Z.
+    // Degenerate: rest pose at the node — back off along +Z, which faces
+    // the default camera side of the current 5-anchor layout. Revisit if
+    // the scene graph ever places nodes behind the spline.
     back.set(0, 0, 1);
   }
   back.normalize();

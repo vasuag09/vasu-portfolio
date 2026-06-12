@@ -39,11 +39,15 @@ export function detectArrival(
   centers: readonly number[],
   band: number = ARRIVAL_BAND,
 ): [ArrivalState, number | null] {
+  // Nearest center within the band wins — if section centers ever sit
+  // closer than 2×band (review finding), occupancy is still unambiguous.
   let occupied: number | null = null;
+  let best = Infinity;
   for (let i = 0; i < centers.length; i += 1) {
-    if (Math.abs(progress - centers[i]) <= band) {
+    const d = Math.abs(progress - centers[i]);
+    if (d <= band && d < best) {
+      best = d;
       occupied = i;
-      break;
     }
   }
   if (occupied === state.inside) return [state, null];

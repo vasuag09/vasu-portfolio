@@ -69,4 +69,12 @@ describe("detectArrival", () => {
     [state, fired] = detectArrival(state, 0.05, CENTERS);
     expect(fired).toBe(0);
   });
+
+  it("resolves overlapping bands to the NEAREST center (review finding)", () => {
+    const tight = [0.5, 0.55]; // closer than 2×band with band=0.035
+    let state = createArrivalState();
+    let fired: number | null;
+    [state, fired] = detectArrival(state, 0.535, tight);
+    expect(fired).toBe(1); // 0.015 from center 1 vs 0.035 from center 0
+  });
 });

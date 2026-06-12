@@ -78,6 +78,9 @@ export function CaseStudyPanel() {
 
   // Deep link in: ?project=nm-gpt opens the panel on load — at the END
   // state (camera already inside the node, no flight replay — spec).
+  // ORDERING CONTRACT (review finding): this mount-only effect is declared
+  // BEFORE the selectedProjectId effect below, so on a deep-link mount the
+  // ref is set before that effect's re-run consumes it. Keep the order.
   const instantDiveRef = useRef(false);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("project");

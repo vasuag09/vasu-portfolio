@@ -5,6 +5,10 @@ import * as THREE from "three";
  * reference between the particle material, the connection material, and
  * SignalDriver (which mutates the values each frame). Sharing references
  * means zero prop drilling and a single write lights both materials.
+ *
+ * WARNING: never material.clone() a material holding these — THREE's clone
+ * shallow-copies uniform OBJECTS, so the clone would stop seeing
+ * SignalDriver's writes. Both consumers are module-singleton materials.
  */
 export const signalUniforms = {
   /** Pulse world position — travels the target spline ahead of scroll. */

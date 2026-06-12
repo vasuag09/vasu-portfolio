@@ -38,11 +38,23 @@ export function startDive(projectId: string, instant = false): void {
   if (!node) return;
   const scale = node.scale * (node.flagship ? NODE_SCALE_FLAGSHIP : NODE_SCALE_ARCHIVE);
   // Rest pose for the dive direction: where the camera is NOW is the most
-  // honest origin — CameraRig records it every frame.
-  cameraDiveState.divePose = deriveDivePose(node.position, scale, {
+  // honest origin — CameraRig records it every frame. Before the rig's
+  // first frame (instant deep links) it holds the hero rest pose, which is
+  // a best-effort origin: the dive direction is cosmetic in the instant
+  // case (no flight is shown).
+  const pose = deriveDivePose(node.position, scale, {
     position: lastCameraPose.position,
     target: lastCameraPose.target,
   });
+  // NaN backstop (review finding): a poisoned pose would propagate through
+  // CameraRig's lerp straight into camera.position — refuse it instead.
+  if (
+    !Number.isFinite(pose.position.x + pose.position.y + pose.position.z) ||
+    !Number.isFinite(pose.target.x + pose.target.y + pose.target.z)
+  ) {
+    return;
+  }
+  cameraDiveState.divePose = pose;
   cameraDiveState.diveTargetBlend = 1;
   if (instant) cameraDiveState.diveBlend = 1;
 }

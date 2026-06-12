@@ -1,27 +1,26 @@
 import { scrollState } from "./scroll-state";
-import { landingOffset } from "./scroll-landing";
+import { headingScrollOffset } from "./scroll-landing";
 
 /**
  * Shared chapter navigation (ChapterNav dots, number keys, deep links,
  * panel camera alignment). Smooth via Lenis when it exists; native jump
- * otherwise (reduced motion). Lands on the section's CONTENT band, not its
- * top edge — Section.tsx publishes its alignment via data-align.
+ * otherwise (reduced motion). Lands the chapter HEADING at the optical
+ * headline line, not the section's top edge — Section.tsx publishes its
+ * alignment via data-align and its heading as `${id}-heading`.
  */
 export function scrollToSection(
   id: string,
   immediate: boolean,
   options: { force?: boolean } = {},
 ): void {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const align = el.dataset.align === "start" ? "start" : "center";
-  const offset = landingOffset(
-    el.getBoundingClientRect().height,
-    window.innerHeight,
-    align,
-  );
+  const section = document.getElementById(id);
+  if (!section) return;
+  const align = section.dataset.align === "start" ? "start" : "center";
+  const heading = document.getElementById(`${id}-heading`);
+  const target = align === "start" ? section : (heading ?? section);
+  const offset = headingScrollOffset(window.innerHeight, align);
   if (scrollState.lenis) {
-    scrollState.lenis.scrollTo(el, {
+    scrollState.lenis.scrollTo(target, {
       offset,
       duration: immediate ? 0 : 1.4,
       immediate,
@@ -29,7 +28,7 @@ export function scrollToSection(
       force: options.force ?? false,
     });
   } else {
-    const top = el.getBoundingClientRect().top + window.scrollY + offset;
+    const top = target.getBoundingClientRect().top + window.scrollY + offset;
     window.scrollTo({ top, behavior: "auto" });
   }
 }

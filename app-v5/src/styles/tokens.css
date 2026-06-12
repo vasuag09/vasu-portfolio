@@ -44,6 +44,10 @@
   --text-base: clamp(1rem, 0.92rem + 0.4vw, 1.125rem);
   --text-lg: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
   --text-xl: clamp(1.75rem, 1.4rem + 1.6vw, 2.75rem);
+  /* Chapter display titles (design elevation): cinematic scale, ≥4rem at 1440px. */
+  --text-display: clamp(3rem, 1.4rem + 5.5vw, 6.75rem);
+  /* Oversized chapter numerals (01–05), structural not textual. */
+  --text-numeral: clamp(4.5rem, 2rem + 9vw, 11rem);
   --text-hero: clamp(2.75rem, 1rem + 7vw, 7.5rem);
   --leading-tight: 1.1;
   --leading-body: 1.6;

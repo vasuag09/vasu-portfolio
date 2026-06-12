@@ -23,6 +23,9 @@ export function ChapterNav() {
     if (requested && SECTION_IDS.has(requested)) {
       // After first paint so layout (and Lenis) exist.
       requestAnimationFrame(() => scrollToSection(requested, true));
+      // The IBM Plex swap reflows the oversized numerals/titles, shifting
+      // heading positions measured before fonts settled — re-anchor once.
+      document.fonts?.ready.then(() => scrollToSection(requested, true));
     }
   }, []);
 

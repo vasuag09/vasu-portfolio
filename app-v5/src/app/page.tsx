@@ -2,6 +2,7 @@ import { BootSequence } from "@/components/boot/BootSequence";
 import { SoundController } from "@/components/sound/SoundController";
 import { SoundToggle } from "@/components/sound/SoundToggle";
 import { CustomCursor } from "@/components/cursor/CustomCursor";
+import { TabTitleEffect } from "@/components/TabTitleEffect";
 import { CanvasRoot } from "@/components/canvas/CanvasRoot";
 import { SmoothScroll } from "@/components/scroll/SmoothScroll";
 import { ChapterNav } from "@/components/nav/ChapterNav";
@@ -27,6 +28,7 @@ export default function Home() {
       <SoundController />
       <SoundToggle />
       <CustomCursor />
+      <TabTitleEffect />
       <SmoothScroll />
       <CanvasRoot />
       <ChapterNav />

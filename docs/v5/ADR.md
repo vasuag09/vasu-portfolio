@@ -310,3 +310,64 @@ no replay). Dive pose derived per node: camera at node center + offset along
 Dive easing = exp damping (matches activation glow idiom, ~9/s rate);
 panel UI keys off diveBlend threshold; reduced-motion path untouched (no
 canvas). One extra lerp per frame — negligible.
+
+## ADR-10: Project World System — registry + dive cross-fade (2026-06-15)
+
+### Context
+Living wave 2 turns a dive arrival into a bespoke per-project environment
+(palette + particle behaviour + optional 3D motif) while CaseStudyPanel still
+carries the text. Seven dive-able projects (fundlymart, nm-gpt, ray-serve,
+insightify, geovision, harness-claude, streamlit-oss); only fundlymart and
+nm-gpt get bespoke worlds first. The transition must key off the SAME signals
+the dive already exposes, never fight ADR-9's single-writer camera, and must
+not blank the persistent particle field while a lazy motif loads.
+
+### Decision
+**One animator, blended off existing state — the ADR-9 pattern reused.**
+- `lib/world-registry.ts` holds `WorldDefinition { id; palette{primary,
+  secondary,accent}; particleOverride?{noiseScale,flowSpeed,turbulence,
+  proximityDamping}; motifComponent? }`. Keyed by **projectId directly** (no
+  separate worldId on projects-v5). All seven projects are pre-registered;
+  the five non-flagship entries are explicit `null` (palette-only fallback to
+  base SCENE_COLORS, no motif). `getWorldDefinition(id): WorldDefinition|null`.
+- Cross-fade rides the shared `signalUniforms` singleton (new uniforms:
+  `uWorldBlend 0..1`, `uWorldColor1/2`, `uWorldAccent`, plus the four particle
+  knobs). Particles' vertex shader `mix()`es each default toward its world
+  value by `uWorldBlend` — one write per frame lights every consumer by
+  reference (same channel discipline as the signal pulse).
+- A single `ProjectWorldEnv` component owns the animation in its own useFrame:
+  reads `cameraDiveState.diveBlend` + `getGraphState().selectedProjectId`
+  (both module singletons, no React subscription), damps `uWorldBlend` toward
+  `diveBlend > 0.05 && selectedProjectId ? 1 : 0` via `dampTowards`, and
+  `.lerp()`s palette colours toward the active definition. Project switch
+  while blended = immediate definition swap, blend keeps creeping → no
+  fade-out/in flicker. Never stranded (base palette is always live under it),
+  exactly like the dive blend.
+- **Suspense wraps ONLY the motif** (`<Suspense fallback={null}>` from
+  `react`, not r3f), mounted in SceneCanvas between Particles and Effects. A
+  suspending lazy motif yields null and the particle field renders unaffected
+  — this is the canvas's first Suspense boundary, deliberately scoped to one
+  subtree. Motifs are `React.lazy`, mounted while `uWorldBlend` is meaningful,
+  unmounted on exit (memory released; boundary stays for the lazy cache).
+
+### Invariant (ADR-9 orthogonality)
+ProjectWorldEnv READS diveBlend + selectedProjectId and writes ONLY
+signalUniforms. It never touches camera.position/target/fov. The velocity-FOV
+feature writes camera.fov from CameraRig (the sole camera writer) and is a
+separate, non-conflicting channel. World palette ≠ camera authority.
+
+### Alternatives & why not
+- Per-world React tree swapped on selection (mount/unmount whole scene):
+  unmounts the persistent particle field, loses GPU buffers, flickers. Rejected.
+- Fade-out-then-fade-in on project switch: doubles transition time and reads
+  as a flicker mid-dive. Rejected for immediate-swap-with-running-blend.
+- Wrapping the whole canvas in Suspense: a lazy motif would blank everything.
+  Rejected — boundary scoped to the motif only.
+
+### Consequences
+Shader colour blend is linear-RGB (may read slightly muddy mid-fade; revisit
+with OKLCH-in-shader only if it shows). First dive into a flagship pays one
+lazy-import (~50–100ms) — acceptable, can preload on panel hover later. Five
+projects are palette-only until their motifs are built; the interface accepts
+motifs retroactively with no breaking change. Deferred: motif choreography
+(each motif owns its own), audio tint, per-chapter (vs per-project) worlds.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -10,6 +10,7 @@ import { getGraphState } from "@/lib/graph-store";
 import { SCENE_COLORS } from "@/lib/scene-colors";
 import { signalUniforms } from "@/lib/signal-uniforms";
 import { getWorldDefinition } from "@/lib/world-registry";
+import { useGraphState } from "@/hooks/useGraphState";
 
 /**
  * Project World cross-fade animator (ADR-10). Sole owner of the world
@@ -38,6 +39,18 @@ const BASE_SECONDARY = new THREE.Color(SCENE_COLORS.accentBright);
 const BASE_ACCENT = new THREE.Color(SCENE_COLORS.accentBright);
 
 export function ProjectWorldEnv() {
+  // React subscription (selection changes are rare) drives the motif mount.
+  const { selectedProjectId } = useGraphState();
+  const motifId =
+    selectedProjectId && getWorldDefinition(selectedProjectId)?.motifComponent
+      ? selectedProjectId
+      : null;
+
+  // Mount as soon as a motif-world is selected (starts the lazy import). The
+  // render-phase setState pattern: only fires on the transition.
+  const [mounted, setMounted] = useState<string | null>(null);
+  if (motifId && motifId !== mounted) setMounted(motifId);
+
   const targetRef = useRef({
     primary: BASE_PRIMARY.clone(),
     secondary: BASE_SECONDARY.clone(),
@@ -84,7 +97,22 @@ export function ProjectWorldEnv() {
     signalUniforms.uWorldColor1.value.lerp(target.primary, colorAlpha);
     signalUniforms.uWorldColor2.value.lerp(target.secondary, colorAlpha);
     signalUniforms.uWorldAccent.value.lerp(target.accent, colorAlpha);
+
+    // Unmount the motif only once it has fully faded out — deferring past the
+    // dive-exit avoids popping it while the camera is still pulling back.
+    // Edge-triggered: the `mounted` guard means this fires at most once.
+    if (mounted && !motifId && signalUniforms.uWorldBlend.value < 0.01) {
+      setMounted(null);
+    }
   });
 
-  return null;
+  const Motif = mounted ? getWorldDefinition(mounted)?.motifComponent : null;
+
+  // Motif-only Suspense boundary (ADR-10): a lazy motif yields null while
+  // loading, so the persistent particle field never blanks.
+  return Motif ? (
+    <Suspense fallback={null}>
+      <Motif />
+    </Suspense>
+  ) : null;
 }

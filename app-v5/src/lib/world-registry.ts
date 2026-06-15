@@ -1,4 +1,4 @@
-import type { ComponentType, LazyExoticComponent } from "react";
+import { lazy, type ComponentType, type LazyExoticComponent } from "react";
 
 import { PROJECT_WORLD_COLORS, type WorldPalette } from "./scene-colors";
 
@@ -9,14 +9,6 @@ import { PROJECT_WORLD_COLORS, type WorldPalette } from "./scene-colors";
  * motif). All seven dive-able projects are derived from WORLD_PROJECT_IDS so
  * a missing world is a structural null, never a silent gap.
  */
-
-/** Props every lazy motif receives from ProjectWorldEnv. */
-export interface WorldMotifProps {
-  /** 0..1 world cross-fade (mirrors signalUniforms.uWorldBlend). */
-  worldBlend: number;
-  /** 0..1 neuron-dive blend. */
-  diveBlend: number;
-}
 
 export interface WorldDefinition {
   /** Matches the projectId. */
@@ -34,10 +26,11 @@ export interface WorldDefinition {
     proximityDamping?: number;
   };
   /**
-   * Bespoke 3D motif, lazy-loaded under a motif-only Suspense boundary.
-   * Added with the flagship motif components (phase-2 step 7).
+   * Bespoke 3D motif, lazy-loaded under ProjectWorldEnv's motif-only Suspense
+   * boundary. Propless and self-sufficient — it reads signalUniforms.uWorldBlend
+   * + cameraDiveState in its own useFrame (no per-frame React props).
    */
-  motifComponent?: LazyExoticComponent<ComponentType<WorldMotifProps>>;
+  motifComponent?: LazyExoticComponent<ComponentType>;
 }
 
 /**
@@ -56,8 +49,24 @@ export const WORLD_PROJECT_IDS = [
 
 /** Flagship worlds with bespoke definitions; everything else is palette-only. */
 const FLAGSHIP_WORLDS: Record<string, WorldDefinition> = {
-  fundlymart: { id: "fundlymart", palette: PROJECT_WORLD_COLORS.fundlymart },
-  "nm-gpt": { id: "nm-gpt", palette: PROJECT_WORLD_COLORS["nm-gpt"] },
+  fundlymart: {
+    id: "fundlymart",
+    palette: PROJECT_WORLD_COLORS.fundlymart,
+    motifComponent: lazy(() =>
+      import("@/components/canvas/worlds/FundlymartWorld").then((m) => ({
+        default: m.FundlymartWorld,
+      })),
+    ),
+  },
+  "nm-gpt": {
+    id: "nm-gpt",
+    palette: PROJECT_WORLD_COLORS["nm-gpt"],
+    motifComponent: lazy(() =>
+      import("@/components/canvas/worlds/NmGptWorld").then((m) => ({
+        default: m.NmGptWorld,
+      })),
+    ),
+  },
 };
 
 /** Derived so all seven ids are registered; non-flagships resolve to null. */

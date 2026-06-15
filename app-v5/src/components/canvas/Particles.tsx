@@ -39,7 +39,7 @@ const vertexShader = /* glsl */ `
   uniform vec3 uCenter;
   uniform vec3 uHalfExtents;
   // ADR-7 per-chapter identity: section cores + scroll progress.
-  uniform vec3 uChapterCenters[5];
+  uniform vec3 uChapterCenters[6];
   uniform float uScrollProgress;
   // Signal pulse + arrival flare (Living Network wave 1).
   uniform vec3 uPulsePos;
@@ -135,7 +135,7 @@ const vertexShader = /* glsl */ `
     float pick = fract(dot(cellSeed, vec3(12.9898, 78.233, 37.719)) * 43758.5453);
     vec3 spawn;
     if (pick < 0.55) {
-      int chapter = int(min(floor(pick * 9.0909), 4.0)); // 5 buckets over [0,0.55)
+      int chapter = int(min(floor(pick * 10.909), 5.0)); // 6 buckets over [0,0.55)
       vec3 dir = cellSeed * 2.0 - 1.0;
       float shaped = pow(fract(pick * 17.0 + cellSeed.y), 1.45);
       float radius = 2.2 + shaped * 7.0;
@@ -147,9 +147,9 @@ const vertexShader = /* glsl */ `
     // Active-chapter focus: interpolate the camera's subject core from
     // scroll progress; particles near it calm down, brighten, and grow —
     // order out of chaos around whatever the visitor is reading.
-    float seg = clamp(uScrollProgress, 0.0, 1.0) * 4.0;
+    float seg = clamp(uScrollProgress, 0.0, 1.0) * 5.0;
     int segLo = int(floor(seg));
-    int segHi = int(min(floor(seg) + 1.0, 4.0));
+    int segHi = int(min(floor(seg) + 1.0, 5.0));
     vec3 activeCenter = mix(uChapterCenters[segLo], uChapterCenters[segHi], fract(seg));
     float dActive = distance(spawn, activeCenter);
     float prox = exp(-dActive * dActive * 0.012);

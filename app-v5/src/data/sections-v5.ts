@@ -25,6 +25,16 @@ export const sections: readonly SectionAnchor[] = [
     cameraTarget: [24, 2, 0],
   },
   {
+    id: "signal",
+    label: "Signal",
+    // Elevated, centered "broadcast" vantage on the transit from the project
+    // cluster (+X) to the skills constellation (-X): the camera rises above
+    // the network to survey it, then descends to skills. NeuralNetwork drops
+    // a section-core node at the target — a signal node above the core.
+    cameraPos: [3, 13, 16],
+    cameraTarget: [0, 5, 0],
+  },
+  {
     id: "skills",
     label: "Skills Graph",
     cameraPos: [-20, 7, 13],

@@ -9,6 +9,7 @@ export type Vec3 = [number, number, number];
 export type SectionId =
   | "hero"
   | "projects"
+  | "signal"
   | "skills"
   | "about"
   | "contact";

@@ -13,8 +13,8 @@ const PALETTE_ONLY = [
 ] as const;
 
 describe("getWorldDefinition", () => {
-  it("returns a full definition for each flagship world", () => {
-    for (const id of FLAGSHIPS) {
+  it("returns a palette-bearing definition for every dive-able project", () => {
+    for (const id of [...FLAGSHIPS, ...PALETTE_ONLY]) {
       const def = getWorldDefinition(id);
       expect(def).not.toBeNull();
       expect(def?.id).toBe(id);
@@ -24,9 +24,15 @@ describe("getWorldDefinition", () => {
     }
   });
 
-  it("returns null for projects without a bespoke world yet (palette-only fallback)", () => {
+  it("gives the flagships a lazy motif component", () => {
+    for (const id of FLAGSHIPS) {
+      expect(getWorldDefinition(id)?.motifComponent).toBeTruthy();
+    }
+  });
+
+  it("leaves the non-flagship worlds palette-only (no motif yet)", () => {
     for (const id of PALETTE_ONLY) {
-      expect(getWorldDefinition(id)).toBeNull();
+      expect(getWorldDefinition(id)?.motifComponent).toBeUndefined();
     }
   });
 
@@ -42,9 +48,10 @@ describe("getWorldDefinition", () => {
     );
   });
 
-  it("gives the two flagships visually distinct palettes", () => {
-    const fundly = getWorldDefinition("fundlymart");
-    const nmgpt = getWorldDefinition("nm-gpt");
-    expect(fundly?.palette.primary).not.toBe(nmgpt?.palette.primary);
+  it("gives all seven worlds visually distinct primary colours", () => {
+    const primaries = [...FLAGSHIPS, ...PALETTE_ONLY].map(
+      (id) => getWorldDefinition(id)?.palette.primary,
+    );
+    expect(new Set(primaries).size).toBe(7);
   });
 });

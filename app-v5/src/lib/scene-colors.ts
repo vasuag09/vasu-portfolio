@@ -55,4 +55,39 @@ export const PROJECT_WORLD_COLORS: Record<string, WorldPalette> = {
     secondary: "#8b6fd6",
     accent: "#7fb4ff",
   },
+  // Ray Serve — LLM-serving observability: cool steel-blue telemetry with a
+  // signal-cyan latency pulse (infra dashboards, histograms).
+  "ray-serve": {
+    primary: "#2f8fb0",
+    secondary: "#4a6f9c",
+    accent: "#6fe0f0",
+  },
+  // Insightify — ATS resume scoring: bronze-gold (the score), deliberately
+  // green-free so it reads apart from FundlyMart.
+  insightify: {
+    primary: "#c8862c",
+    secondary: "#9c5e3c",
+    accent: "#f0c460",
+  },
+  // GeoVision — Sentinel-2 multispectral LULC: deep teal water meets olive
+  // vegetation — an earth-observation palette, not a commerce green.
+  geovision: {
+    primary: "#1f8a8a",
+    secondary: "#8a9a3c",
+    accent: "#5fd0c0",
+  },
+  // harness-claude — agentic SDLC tooling: Claude's warm coral/terracotta,
+  // the meta layer (this portfolio is built with it).
+  "harness-claude": {
+    primary: "#d86c4a",
+    secondary: "#c0855c",
+    accent: "#f0a070",
+  },
+  // Streamlit — cross-layer OSS fix: Streamlit's signature crimson, cooled
+  // with a magenta secondary to separate from harness-claude's coral.
+  "streamlit-oss": {
+    primary: "#d83b3b",
+    secondary: "#b04a6a",
+    accent: "#f06a6a",
+  },
 };

@@ -47,36 +47,40 @@ export const WORLD_PROJECT_IDS = [
   "streamlit-oss",
 ] as const;
 
-/** Flagship worlds with bespoke definitions; everything else is palette-only. */
-const FLAGSHIP_WORLDS: Record<string, WorldDefinition> = {
-  fundlymart: {
-    id: "fundlymart",
-    palette: PROJECT_WORLD_COLORS.fundlymart,
-    motifComponent: lazy(() =>
-      import("@/components/canvas/worlds/FundlymartWorld").then((m) => ({
-        default: m.FundlymartWorld,
-      })),
-    ),
-  },
-  "nm-gpt": {
-    id: "nm-gpt",
-    palette: PROJECT_WORLD_COLORS["nm-gpt"],
-    motifComponent: lazy(() =>
-      import("@/components/canvas/worlds/NmGptWorld").then((m) => ({
-        default: m.NmGptWorld,
-      })),
-    ),
-  },
+// Lazy motifs — only the two flagships have bespoke 3D geometry; the rest are
+// palette-only worlds (the whole field recolours on dive, no extra meshes).
+const FLAGSHIP_MOTIFS: Record<string, WorldDefinition["motifComponent"]> = {
+  fundlymart: lazy(() =>
+    import("@/components/canvas/worlds/FundlymartWorld").then((m) => ({
+      default: m.FundlymartWorld,
+    })),
+  ),
+  "nm-gpt": lazy(() =>
+    import("@/components/canvas/worlds/NmGptWorld").then((m) => ({
+      default: m.NmGptWorld,
+    })),
+  ),
 };
 
-/** Derived so all seven ids are registered; non-flagships resolve to null. */
-const WORLD_REGISTRY: Record<string, WorldDefinition | null> = Object.fromEntries(
-  WORLD_PROJECT_IDS.map((id) => [id, FLAGSHIP_WORLDS[id] ?? null]),
+/**
+ * Every dive-able project gets a world definition (a palette, plus a motif for
+ * the flagships). Derived from WORLD_PROJECT_IDS so the set can't drift; a
+ * project missing a palette in PROJECT_WORLD_COLORS is a build-time error.
+ */
+const WORLD_REGISTRY: Record<string, WorldDefinition> = Object.fromEntries(
+  WORLD_PROJECT_IDS.map((id) => [
+    id,
+    {
+      id,
+      palette: PROJECT_WORLD_COLORS[id],
+      ...(FLAGSHIP_MOTIFS[id] ? { motifComponent: FLAGSHIP_MOTIFS[id] } : {}),
+    },
+  ]),
 );
 
 /**
- * Active world for a selection. Null = no dive, an unknown project, or a
- * project registered without a bespoke world (palette-only fallback).
+ * Active world for a selection. Null only for no dive / an unknown project —
+ * every registered project has a palette-bearing definition.
  */
 export function getWorldDefinition(
   projectId: string | null,

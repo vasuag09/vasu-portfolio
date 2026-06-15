@@ -46,6 +46,9 @@ const vertexShader = /* glsl */ `
   uniform float uPulseStrength;
   uniform vec3 uFirePos;
   uniform float uFireStrength;
+  // Cursor probe (Living Network wave 2): pointer world-pos + strength.
+  uniform vec3 uPointerPos;
+  uniform float uProbeStrength;
   varying float vEnvelope;
   varying float vIntensity;
 
@@ -169,11 +172,18 @@ const vertexShader = /* glsl */ `
     float fire = exp(-dFire * dFire * 0.03) * uFireStrength;
     vIntensity *= 1.0 + pulse * 1.1 + fire * 1.4;
 
+    // Cursor probe: the field leans toward the pointer — a localized
+    // brightening + growth, same gaussian idiom as the pulse. uProbeStrength
+    // is 0 on touch / reduced motion, so this is inert there.
+    float dProbe = distance(displaced, uPointerPos);
+    float probe = exp(-dProbe * dProbe * 0.05) * uProbeStrength;
+    vIntensity *= 1.0 + probe * 0.9;
+
     vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
     // Perspective size, clamped so near-camera particles never blow out
     // into screen-filling blobs.
     float dist = max(-mvPosition.z, 4.0);
-    float sizeBoost = 1.0 + prox * 0.5 + pulse * 0.7 + fire * 0.5;
+    float sizeBoost = 1.0 + prox * 0.5 + pulse * 0.7 + fire * 0.5 + probe * 0.6;
     gl_PointSize = min(aSize * sizeBoost * uPixelRatio * vEnvelope * (80.0 / dist), 14.0);
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -182,6 +192,11 @@ const vertexShader = /* glsl */ `
 const fragmentShader = /* glsl */ `
   uniform vec3 uBaseColor;
   uniform vec3 uSignalColor;
+  // Project World cross-fade (ADR-10): palette + blend, base-palette default.
+  uniform float uWorldBlend;
+  uniform vec3 uWorldColor1;
+  uniform vec3 uWorldColor2;
+  uniform vec3 uWorldAccent;
   varying float vEnvelope;
   varying float vIntensity;
 
@@ -193,6 +208,15 @@ const fragmentShader = /* glsl */ `
 
     // Signal particles (vIntensity > 1) are accent-colored and HDR.
     vec3 color = mix(uBaseColor, uSignalColor, step(1.5, vIntensity));
+
+    // World cross-fade: field particles drift between the world's primary and
+    // secondary (vEnvelope adds free variation), signal particles take the
+    // world accent. Blend clamped 0..1 — no NaN can reach the bloom chain.
+    float wb = clamp(uWorldBlend, 0.0, 1.0);
+    vec3 worldField = mix(uWorldColor1, uWorldColor2, vEnvelope);
+    vec3 worldColor = mix(worldField, uWorldAccent, step(1.5, vIntensity));
+    color = mix(color, worldColor, wb);
+
     float alpha = disc * vEnvelope * 0.4;
     gl_FragColor = vec4(color * vIntensity, alpha);
   }

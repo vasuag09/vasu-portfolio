@@ -8,6 +8,8 @@ import { NodeLabels } from "./NodeLabels";
 import { SignalDriver } from "./SignalDriver";
 import { SynapseNode } from "./SynapseNode";
 import { Particles } from "./Particles";
+import { ProbeDriver } from "./ProbeDriver";
+import { ProjectWorldEnv } from "./ProjectWorldEnv";
 import { Effects } from "./Effects";
 import { DebugSpline } from "./DebugSpline";
 import { useParticleConfig } from "@/hooks/useParticleConfig";
@@ -69,6 +71,11 @@ export default function SceneCanvas() {
       {tier.name === "desktop" ? <NodeLabels /> : null}
       <SynapseNode />
       <Particles count={tier.particleCount} />
+      {/* Wave 2: cursor probe writes pointer uniforms; ProjectWorldEnv
+          cross-fades the world palette on dive arrival. Both write only
+          signalUniforms (read by Particles' shader), never the camera. */}
+      <ProbeDriver />
+      <ProjectWorldEnv />
       {/* Mount Effects ONLY when the tier wants bloom — its prioritized
           useFrame takes over rendering entirely (see Effects.tsx). */}
       {noEffects || !tier.bloom ? null : (

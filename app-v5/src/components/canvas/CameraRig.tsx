@@ -12,6 +12,8 @@ import {
 import { scrollState } from "@/lib/scroll-state";
 import { cameraDiveState, lastCameraPose } from "@/lib/camera-state";
 import { dampTowards } from "@/lib/camera-dive";
+import { stepFov, targetFov } from "@/lib/velocity-fov";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { sections } from "@/data/sections-v5";
 
 /**
@@ -29,6 +31,7 @@ import { sections } from "@/data/sections-v5";
 const DIVE_RATE = 7;
 
 export function CameraRig() {
+  const reducedMotion = useReducedMotion();
   const spline = useMemo(() => buildCameraSpline(sections), []);
   const poseRef = useRef<CameraPose>({
     position: new THREE.Vector3(...sections[0].cameraPos),
@@ -75,6 +78,19 @@ export function CameraRig() {
       lastCameraPose.target.copy(pose.target);
     }
     lastCameraPose.position.copy(camera.position);
+
+    // Velocity FOV (ADR-9 wave 2): fast scroll widens the lens (≤ +6°),
+    // suppressed during a dive / reduced motion. Orthogonal to position +
+    // target authority above — CameraRig stays the single camera writer.
+    stepFov(
+      camera as THREE.PerspectiveCamera,
+      targetFov({
+        velocity: scrollState.velocity,
+        diveBlend: dive.diveBlend,
+        reducedMotion,
+      }),
+      delta,
+    );
   });
 
   return null;

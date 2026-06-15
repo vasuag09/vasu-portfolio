@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+@import "../styles/reduced-motion.css";
+@import "../styles/boot.css";
+@import "../styles/cursor.css";
+
+@theme inline {
+  --color-bg-base: var(--bg-base);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-overlay: var(--bg-overlay);
+  --color-text-primary: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-dim: var(--accent-dim);
+  --color-border-default: var(--border);
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo,
+    monospace;
+}
+
+html {
+  background: var(--bg-base);
+  color-scheme: dark;
+  /* Modal scroll locks toggle overflow — a stable gutter prevents the
+     15px reflow jolt when the scrollbar disappears. */
+  scrollbar-gutter: stable;
+}
+
+body {
+  /* Background lives on <html> only: an opaque body background would paint
+     OVER the z-index:-1 fixed canvas (negative-z layers render before
+     in-flow block backgrounds in the root stacking context — ADR-4). */
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Char-level hero reveal (CharReveal.tsx). Compositor-only; plays solely
+   behind/after the boot overlay, so SSR paint is never hidden. */
+.char-reveal-in {
+  display: inline-block;
+  animation: char-in 620ms var(--ease-out-expo) both;
+  will-change: transform;
+}
+
+@keyframes char-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+}
+
+/* Oversized chapter numerals — structural texture, not content. */
+.chapter-numeral {
+  font-size: var(--text-numeral);
+  font-weight: 700;
+  line-height: 0.85;
+  color: transparent;
+  -webkit-text-stroke: 1px oklch(48% 0.01 250 / 0.55);
+  user-select: none;
+}
+
+/* Graph node labels (ADR-8): real DOM over the canvas, projected by drei
+   Html. The canvas container is aria-hidden + pointer-events:none — labels
+   inherit both. Opacity is driven per-frame by camera distance. */
+.graph-label-wrap {
+  pointer-events: none !important;
+}
+
+.graph-label {
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  text-shadow: 0 0 10px oklch(8% 0.02 250);
+  /* Clear the sphere tops — labels float above their node, not on it. */
+  transform: translateY(-2.6em);
+}
+
+.graph-label--project {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.graph-label--skill {
+  color: var(--text-muted);
+}
+
+/* Neuron dive (ADR-9): the panel arrives WITH the camera — content fades
+   in as the flight settles (~200ms in). Compositor-only; reduced-motion
+   CSS backstop kills both animations → instant appearance. */
+.panel-dive-in {
+  animation: panel-dive 360ms var(--ease-out-expo) 180ms both;
+}
+
+.backdrop-dive-in {
+  animation: backdrop-dive 300ms linear both;
+}
+
+@keyframes panel-dive {
+  from {
+    opacity: 0;
+    transform: translateX(2.5rem);
+  }
+}
+
+@keyframes backdrop-dive {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Primary CTA pulse (SynapseTrigger) — killed by reduced-motion.css. */
+@keyframes cta-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+}

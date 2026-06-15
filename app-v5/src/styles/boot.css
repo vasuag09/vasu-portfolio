@@ -1,0 +1,79 @@
+/*
+ * Boot overlay (Phase 10). Hidden by default — the inline pre-paint script
+ * in layout.tsx sets html[data-boot="play"] for first visits with motion
+ * allowed, BEFORE anything paints (no flash either way; no-JS never sees it).
+ * The overlay layers on top of painted SSR content (Phase-8 contract:
+ * never gate the hero paint).
+ */
+
+.boot-overlay {
+  display: none;
+}
+
+html[data-boot="play"] .boot-overlay {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-boot);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background: var(--bg-base);
+  opacity: 1;
+  transition: opacity var(--duration-normal) var(--ease-in-out-soft);
+  /* Failsafe: if hydration never runs, CSS alone clears the overlay after
+     2.5s so content is never permanently blocked. */
+  animation: boot-failsafe var(--duration-normal) linear 2500ms forwards;
+}
+
+html[data-boot="play"] .boot-overlay[data-fading] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Hydration reached the component (Phase 7): it may hold the overlay open
+   for the SoundGate, so the dead-JS failsafe must stand down. */
+html[data-boot="play"] .boot-overlay[data-hydrated] {
+  animation: none;
+}
+
+@keyframes boot-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+/* Converging glyph burst — glyphs fly from a ring INTO the name while the
+   scramble resolves. Compositor-only (transform + opacity). */
+.boot-burst {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.boot-burst-glyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: var(--text-sm);
+  color: var(--accent);
+  opacity: 0;
+  animation: boot-converge 620ms var(--ease-out-expo) both;
+  will-change: transform;
+}
+
+@keyframes boot-converge {
+  0% {
+    opacity: 0.9;
+    transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by)))
+      scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.25);
+  }
+}

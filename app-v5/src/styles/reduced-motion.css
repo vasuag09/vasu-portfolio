@@ -1,0 +1,20 @@
+/*
+ * ADR-6: Reduced-motion layout model — single layout tree.
+ * Canvas hidden entirely; all animation/transition suppressed.
+ * Rule: every GSAP tween must live inside a motion-aware hook guarded by
+ * useReducedMotion() — this file is the CSS backstop, not the only defense.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-container {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

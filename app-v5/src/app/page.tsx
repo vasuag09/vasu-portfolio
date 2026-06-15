@@ -12,6 +12,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SkillsOverlay } from "@/components/graph/SkillsOverlay";
 import { ProjectList } from "@/components/graph/ProjectList";
 import { CaseStudyPanel } from "@/components/graph/CaseStudyPanel";
+import { WritingPosts } from "@/components/writing/WritingPosts";
 import { SynapseTerminal } from "@/components/synapse/SynapseTerminal";
 import { SynapseTrigger } from "@/components/synapse/SynapseTrigger";
 
@@ -93,12 +94,24 @@ export default function Home() {
           <ProjectList />
         </Section>
 
-        {/* ---- 03 · Skills: end-aligned, full-width graph overlay ---- */}
+        {/* ---- 03 · Signal: writing chapter, end-aligned ---- */}
+        <Section
+          id="signal"
+          label="Signal"
+          heightSvh={260}
+          index={3}
+          title="Signal"
+          variant="end"
+        >
+          <WritingPosts />
+        </Section>
+
+        {/* ---- 04 · Skills: end-aligned, full-width graph overlay ---- */}
         <Section
           id="skills"
           label="Skills Graph"
           heightSvh={280}
-          index={3}
+          index={4}
           title="Weights & Biases"
           variant="end"
         >
@@ -114,12 +127,12 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* ---- 04 · About: split editorial ---- */}
+        {/* ---- 05 · About: split editorial ---- */}
         <Section
           id="about"
           label="About"
           heightSvh={240}
-          index={4}
+          index={5}
           title="Output Layer"
           variant="split"
         >
@@ -130,12 +143,12 @@ export default function Home() {
           </p>
         </Section>
 
-        {/* ---- 05 · Contact: centered, oversized link ---- */}
+        {/* ---- 06 · Contact: centered, oversized link ---- */}
         <Section
           id="contact"
           label="Contact"
           heightSvh={160}
-          index={5}
+          index={6}
           title="Open a connection"
           variant="center"
         >

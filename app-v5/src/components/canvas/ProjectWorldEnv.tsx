@@ -28,8 +28,9 @@ import { getWorldDefinition } from "@/lib/world-registry";
 const DIVE_ACTIVE = 0.05;
 /** uWorldBlend damping rate (~settles in ~600ms). */
 const WORLD_FADE_RATE = 4;
-/** Per-frame palette colour creep toward the target. */
-const COLOR_LERP = 0.08;
+/** Palette colour damping rate — slightly ahead of the blend so colour is
+ *  ready as the cross-fade ramps. Frame-rate independent (see useFrame). */
+const COLOR_RATE = 5;
 
 // Base palette = the no-world target (blend rides to 0, so colour is masked).
 const BASE_PRIMARY = new THREE.Color(SCENE_COLORS.accent);
@@ -76,9 +77,13 @@ export function ProjectWorldEnv() {
       WORLD_FADE_RATE,
     );
 
-    signalUniforms.uWorldColor1.value.lerp(target.primary, COLOR_LERP);
-    signalUniforms.uWorldColor2.value.lerp(target.secondary, COLOR_LERP);
-    signalUniforms.uWorldAccent.value.lerp(target.accent, COLOR_LERP);
+    // Frame-rate-independent colour creep — same exp form as dampTowards, so
+    // the palette settles identically at 30 and 60fps (a fixed per-frame lerp
+    // would creep twice as fast at 60fps).
+    const colorAlpha = 1 - Math.exp(-COLOR_RATE * delta);
+    signalUniforms.uWorldColor1.value.lerp(target.primary, colorAlpha);
+    signalUniforms.uWorldColor2.value.lerp(target.secondary, colorAlpha);
+    signalUniforms.uWorldAccent.value.lerp(target.accent, colorAlpha);
   });
 
   return null;

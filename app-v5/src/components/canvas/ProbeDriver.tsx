@@ -68,6 +68,8 @@ export function ProbeDriver() {
     const s = stateRef.current;
     const active = s.enabled && s.seen;
     if (active) {
+      // Assumes the SceneCanvas PerspectiveCamera (the only camera here); the
+      // ray.at(depth) unprojection is calibrated for that perspective frustum.
       s.raycaster.setFromCamera(s.ndc, camera);
       s.raycaster.ray.at(PROBE_DEPTH, s.world);
       signalUniforms.uPointerPos.value.copy(s.world);

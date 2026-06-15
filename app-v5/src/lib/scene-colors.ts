@@ -26,3 +26,33 @@ export const CATEGORY_HEX: Record<SkillCategory, string> = {
   lang: SCENE_COLORS.nodeLang,
   infra: SCENE_COLORS.nodeInfra,
 };
+
+/**
+ * Per-project World palettes (ADR-10) — the moods the dive cross-fade blends
+ * the particle field toward. Only bespoke worlds live here; projects absent
+ * from this map fall back to the base scene palette (world-registry returns
+ * null). Hex like SCENE_COLORS — three.js can't read oklch(); these are
+ * world-only colours, not tokens.css tokens.
+ */
+export interface WorldPalette {
+  primary: string;
+  secondary: string;
+  accent: string;
+}
+
+export const PROJECT_WORLD_COLORS: Record<string, WorldPalette> = {
+  // FundlyMart — WhatsApp-native B2B pharmacy commerce: transactional green
+  // warmed by a commerce amber, the "money moving" feel.
+  fundlymart: {
+    primary: "#19a86a",
+    secondary: "#e0a23c",
+    accent: "#5fe6a6",
+  },
+  // NM-GPT — RAG over institutional documents: a cool, academic
+  // knowledge-blue lifting into citation glow.
+  "nm-gpt": {
+    primary: "#3f7fd0",
+    secondary: "#8b6fd6",
+    accent: "#7fb4ff",
+  },
+};
